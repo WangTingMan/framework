@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="header">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="internal">
+      <UniqueIdentifier>{b0dd35a0-23b6-472f-818a-072870988897}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\abstract_module.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\abstract_task.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\framework_manager.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\general_seq_task_runner_module.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\information_manager.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\log_util.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\module_manager.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\task_runner_module.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thread_manager.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thread_worker.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\timer_control_block.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\timer_module.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\internal\platform.cpp">
+      <Filter>internal</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\abstract_info.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\abstract_module.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\abstract_task.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\abstract_worker.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\executable_task.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\framework_event.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\framework_export.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\framework_manager.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\general_seq_task_runner_module.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\information_manager.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lendable_element.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\log_util.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\module_manager.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\task_runner_module.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thread_manager.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thread_worker.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\timer_control_block.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\timer_module.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\internal\platform.h">
+      <Filter>internal</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
