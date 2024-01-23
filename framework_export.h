@@ -1,8 +1,5 @@
 #pragma once
 
-#define FRAMEWORK_COMPONENT_BUILD
-
-#if defined(FRAMEWORK_COMPONENT_BUILD)
 #if defined(WIN32) || defined(_MSC_VER)
 
 #if defined(FRAMEWORK_IMPLEMENTATION)
@@ -19,6 +16,3 @@
 #endif  // defined(FRAMEWORK_COMPONENT_BUILD)
 #endif
 
-#else  // defined(FRAMEWORK_COMPONENT_BUILD)
-#define FRAMEWORK_EXPORT
-#endif
