@@ -1,3 +1,4 @@
+#include "auto_guard.h"
 #include "thread_manager.h"
 #include "framework_manager.h"
 #include "timer_module.h"
@@ -7,6 +8,18 @@
 
 namespace framework
 {
+
+static thread_local std::string s_thread_module_owner;
+
+std::string const& thread_manager::get_current_thread_module_owner()
+{
+    return s_thread_module_owner;
+}
+
+void thread_manager::set_current_thread_module_owner( std::string a_module_name )
+{
+    s_thread_module_owner = std::move( a_module_name );
+}
 
 void thread_manager::run( bool a_occupy_current_thread )
 {
@@ -97,7 +110,7 @@ void thread_manager::post_delay_task
 
 void thread_manager::post_task( std::shared_ptr<abstract_task> a_task )
 {
-    std::lock_guard<std::recursive_mutex> locker( m_mutex );
+    std::unique_lock<std::recursive_mutex> locker( m_mutex );
 
     std::string const& _module = a_task->get_target_module();
     if( _module.empty() )
@@ -150,6 +163,22 @@ void thread_manager::post_task( std::shared_ptr<abstract_task> a_task )
                 return;
             }
         }
+    }
+    else if( cb.module_type_value == abstract_module::module_type::execute_task_when_post )
+    {
+        locker.unlock();
+        s_thread_module_owner = cb.module_name;
+        auto_guard guard( [this]() { s_thread_module_owner.clear(); } );
+        auto detail_module = framework_manager::get_instance().get_module_manager().get_module( _module );
+        if( detail_module )
+        {
+            detail_module->handle_task( a_task );
+        }
+        else
+        {
+            LogUtilError() << "No such module: " << _module;
+        }
+        return;
     }
 
     std::shared_ptr<abstract_worker> worker;

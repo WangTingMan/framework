@@ -250,7 +250,7 @@ bool module_manager::handle_module_power_changed( std::string a_module_name )
         locker.unlock();
         if( !callback )
         {
-            LogUtilInfo() << "Not register m_power_changed_callback";
+            LogUtilError() << "Not register m_power_changed_callback. How to notify power status change?";
             return true;
         }
 

@@ -2,6 +2,7 @@
 #include "log_util.h"
 #include "internal/platform.h"
 #include "timer_module.h"
+#include "thread_manager.h"
 
 #if __has_include( <base/time/time.h> )
 #ifndef USE_CHROME_BASE_LIBRARY
@@ -266,7 +267,13 @@ framework::log_impl::~log_impl()
                 "[" << m_logger_content->m_level << "]["
                << get_current_thread_id() << "] [" << file
                << ":" << m_logger_content->m_line_number
-               << "] " << m_string_stream.str();
+               << "] ";
+            if( !thread_manager::get_current_thread_module_owner().empty() )
+            {
+                ss << "[" << thread_manager::get_current_thread_module_owner()
+                   << "] ";
+            }
+            ss << m_string_stream.str();
 
             _log_line = std::move( ss ).str();
             if( '\n' != _log_line.back() )

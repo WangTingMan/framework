@@ -77,6 +77,10 @@ public:
      */
     void remove_worker( std::shared_ptr<abstract_worker> a_worker );
 
+    static std::string const& get_current_thread_module_owner();
+
+    static void set_current_thread_module_owner( std::string a_module_name );
+
 private:
 
     /**

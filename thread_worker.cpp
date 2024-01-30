@@ -1,3 +1,4 @@
+#include "auto_guard.h"
 #include "thread_worker.h"
 #include "log_util.h"
 #include "thread_manager.h"
@@ -142,6 +143,8 @@ void thread_worker::run_impl( std::shared_ptr<abstract_worker> a_current )
         for( auto it = tasks.begin(); it != tasks.end(); ++it )
         {
             auto& the_task = ( *it );
+            thread_manager::set_current_thread_module_owner( the_task->get_target_module() );
+            auto_guard guard( []() { thread_manager::set_current_thread_module_owner( "" ); } );
             bool exit = handle_task( the_task );
 
             if( exit || (!m_is_running) )

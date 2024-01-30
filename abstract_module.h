@@ -21,6 +21,7 @@ public:
     {
         concurrently_executing = 0x01, // all tasks related with this module can be concurrently executed
         sequence_executing = 0x02,     // all tasks related with this module only can be sequentially executed
+        execute_task_when_post = 0x03, // all tasks related with this module will be execute when post immediately
     };
 
     enum class powering_status : uint8_t

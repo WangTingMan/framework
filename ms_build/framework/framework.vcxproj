@@ -71,7 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)../../../;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)../../../;$(ProjectDir)../../../chromebase;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -111,7 +112,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;FRAMEWORK_EXPORTS;WIN32_LEAN_AND_MEAN;FRAMEWORK_IMPLEMENTATION;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;FRAMEWORK_EXPORTS;WIN32_LEAN_AND_MEAN;FRAMEWORK_IMPLEMENTATION;_WINDOWS;_USRDLL;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -166,6 +167,7 @@
     <ClInclude Include="..\..\abstract_module.h" />
     <ClInclude Include="..\..\abstract_task.h" />
     <ClInclude Include="..\..\abstract_worker.h" />
+    <ClInclude Include="..\..\auto_guard.h" />
     <ClInclude Include="..\..\executable_task.h" />
     <ClInclude Include="..\..\framework_event.h" />
     <ClInclude Include="..\..\framework_export.h" />

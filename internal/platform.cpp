@@ -13,6 +13,8 @@
 #include <base/base64.h>
 #include <base/strings/string_split.h>
 #include <base/strings/string_util.h>
+#include <base/debug/stack_trace.h>
+#pragma comment(lib, "libChromeBase.lib")
 #endif
 
 #include <ctime>
@@ -56,6 +58,33 @@ std::wstring convert_to_wstring( std::string a_str )
 
 #endif
     return ret_str;
+}
+
+std::string convert_to_string( std::wstring a_str )
+{
+    std::string str;
+#ifdef HAS_LIBCHROME_LIBRARAY
+    str = base::SysWideToNativeMB( a_str );
+#else
+
+#ifdef _WIN32
+    int wide_length = static_cast< int >( a_str.length() );
+    if( wide_length == 0 )
+        return std::string();
+
+    // Compute the length of the buffer we'll need.
+    int charcount = WideCharToMultiByte( CP_ACP, 0, a_str.data(), wide_length,
+        NULL, 0, NULL, NULL );
+    if( charcount == 0 )
+        return std::string();
+
+    str.resize( charcount );
+    WideCharToMultiByte( CP_ACP, 0, a_str.data(), wide_length,
+        &str[0], charcount, NULL, NULL );
+#endif
+
+#endif
+    return str;
 }
 
 void set_thread_name( const std::string& a_name )
@@ -112,7 +141,30 @@ std::u8string convert( std::string const& a_source )
 
     return str;
 #else
-    return std::u8string();;
+
+#ifdef _WIN32
+    std::u8string str;
+    std::wstring w_str = convert_to_wstring( a_source );
+    int wide_length = static_cast< int >( w_str.length() );
+    if( wide_length == 0 )
+        return str;
+
+    // Compute the length of the buffer we'll need.
+    int charcount = WideCharToMultiByte( CP_UTF8, 0, w_str.data(), wide_length,
+        NULL, 0, NULL, NULL );
+    if( charcount == 0 )
+        return str;
+
+    std::string utf8_str;
+    utf8_str.resize( charcount );
+    WideCharToMultiByte( CP_UTF8, 0, w_str.data(), wide_length,
+        &utf8_str[0], charcount, NULL, NULL );
+    std::u8string::value_type const* _str = nullptr;
+    _str = reinterpret_cast< std::u8string::value_type const* >( utf8_str.c_str() );
+    str = std::u8string( _str, utf8_str.size() + 1 );
+    return str;
+#endif
+
 #endif
 }
 
@@ -126,7 +178,12 @@ std::string convert( std::u8string const& a_source )
     r.push_back( '\0' );
     return r.c_str();
 #else
-    return "";
+
+#ifdef _WIN32
+    const char* src = reinterpret_cast< const char* >( a_source.c_str() );
+    std::wstring wstr;
+#endif
+
 #endif
 }
 
