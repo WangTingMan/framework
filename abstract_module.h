@@ -71,11 +71,7 @@ public:
         return m_module_type;
     }
 
-    powering_status const& get_power_status()const
-    {
-        std::shared_lock<std::shared_mutex> locker( m_mutex );
-        return m_power_status;
-    }
+    powering_status const& get_power_status()const;
 
     static std::string to_string( powering_status const& a_status );
 
