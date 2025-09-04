@@ -1,6 +1,6 @@
 ﻿#include <future>
 #include <iostream>
-#include "framework/framework_manager.h"  
+#include "framework/framework_manager.h"
 #include "framework/timer_module.h"
 #include "framework/log_util.h"
 
@@ -23,9 +23,9 @@ void usually_timer( uint32_t a_id, std::string a_name )
     LogUtilInfo() << "timer: " << a_name << " occurred.";
     if( occur_time > 30 )
     {
-        auto timer_module_ = std::dynamic_pointer_cast< framework::timer_module >(
-            framework::framework_manager::get_instance().get_module_manager().get_module(
-                framework::timer_module::s_timer_module_name ) );
+        auto timer_module_ = framework::framework_manager::get_instance()
+            .get_module_manager().get_module< framework::timer_module >(
+                framework::timer_module::s_timer_module_name );
         timer_module_->undregister_timer( a_id );
         LogUtilInfo() << "Cancel timer: " << a_id << ", name: " << a_name;
         promis_.set_value();

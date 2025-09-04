@@ -122,6 +122,28 @@ private:
      */
     void dismiss_long_idle_worker();
 
+    void schedule_sequence_task
+        (
+        module_task_cb& a_task_cb,
+        std::shared_ptr<abstract_task> a_task
+        );
+
+    void schedule_immediately_task
+        (
+        std::shared_ptr<abstract_task> a_task,
+        std::string const& a_module
+        );
+
+    void schedule_concurrently_task
+        (
+        std::shared_ptr<abstract_task> a_task
+        );
+
+    void schedule_handler_task
+        (
+        std::shared_ptr<abstract_task> a_task
+        );
+
     std::recursive_mutex m_mutex;
     std::unordered_map<std::string, module_task_cb> m_module_types;
 

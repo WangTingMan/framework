@@ -47,6 +47,8 @@ public:
 
     void add_new_module( std::shared_ptr<framework::abstract_module> a_module );
 
+    void remove_module( std::string a_name );
+
     void register_power_changed_callback( std::function<void( powering_status )> a_callback )
     {
         std::lock_guard<std::shared_mutex> locker( m_pro_mutex );

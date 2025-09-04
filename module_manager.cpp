@@ -390,6 +390,13 @@ void module_manager::add_new_module( std::shared_ptr<framework::abstract_module>
     }
 }
 
+void module_manager::remove_module( std::string a_name )
+{
+    LogUtilInfo() << "remove module " << a_name;
+    std::lock_guard<std::shared_mutex> locker( m_pro_mutex );
+    m_modules.erase( a_name );
+}
+
 void module_manager::handle_module_manager_task( std::shared_ptr<abstract_task> a_task )
 {
 

@@ -60,6 +60,9 @@
     <ClCompile Include="..\..\internal\platform.cpp">
       <Filter>internal</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\module_task_handler.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\abstract_info.h">
@@ -120,6 +123,9 @@
       <Filter>internal</Filter>
     </ClInclude>
     <ClInclude Include="..\..\auto_guard.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\module_task_handler.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>

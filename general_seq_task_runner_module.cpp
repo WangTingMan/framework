@@ -7,9 +7,13 @@
 namespace framework
 {
 
-general_seq_task_runner_module::general_seq_task_runner_module()
+general_seq_task_runner_module::general_seq_task_runner_module( std::string a_module_name )
 {
-    set_name( s_general_seq_task_runner_module );
+    if( a_module_name.empty() )
+    {
+        a_module_name = s_general_seq_task_runner_module;
+    }
+    set_name( a_module_name );
     set_module_type( abstract_module::module_type::sequence_executing );
 }
 

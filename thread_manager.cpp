@@ -1,6 +1,7 @@
 #include "auto_guard.h"
 #include "thread_manager.h"
 #include "framework_manager.h"
+#include "module_task_handler.h"
 #include "timer_module.h"
 #include "thread_worker.h"
 #include "log_util.h"
@@ -139,58 +140,24 @@ void thread_manager::post_task( std::shared_ptr<abstract_task> a_task )
     }
 
     module_task_cb& cb = m_module_types[_module];
-    if( abstract_module::module_type::sequence_executing == cb.module_type_value )
+    switch( cb.module_type_value )
     {
-        if( cb.m_executing_worker )
-        {
-            cb.m_executing_worker->post_task( a_task );
-            return;
-        }
-        else
-        {
-            std::shared_ptr<abstract_worker> worker;
-            worker = find_idle_worker();
-            if( worker )
-            {
-                assign_work( worker, a_task );
-                cb.m_executing_worker = worker;
-                return;
-            }
-            else
-            {
-                // There are maybe no more workers. So we cache this task.
-                cb.pending_tasks.push_back( a_task );
-                return;
-            }
-        }
-    }
-    else if( abstract_module::module_type::execute_task_when_post == cb.module_type_value )
-    {
-        locker.unlock();
-        s_thread_module_owner = cb.module_name;
-        auto_guard guard( [this]() { s_thread_module_owner.clear(); } );
-        auto detail_module = framework_manager::get_instance().get_module_manager().get_module( _module );
-        if( detail_module )
-        {
-            detail_module->handle_task( a_task );
-        }
-        else
-        {
-            LogUtilError() << "No such module: " << _module;
-        }
+    case abstract_module::module_type::sequence_executing:
+        schedule_sequence_task( cb, std::move( a_task ) );
         return;
-    }
-
-    std::shared_ptr<abstract_worker> worker;
-    worker = find_idle_worker();
-    if( worker )
-    {
-        assign_work( worker, a_task );
-    }
-    else
-    {
-        //There is no worker to do our work current.
-        m_work_need_assign.push_back( a_task );
+    case abstract_module::module_type::execute_task_when_post:
+        locker.unlock();
+        schedule_immediately_task( std::move( a_task ), _module );
+        return;
+    case abstract_module::module_type::concurrently_executing:
+        schedule_concurrently_task( std::move( a_task ) );
+        return;
+    case abstract_module::module_type::handler_shchedule:
+        schedule_handler_task( std::move( a_task ) );
+        return;
+    default:
+        LogUtilError() << "unknown module task type.";
+        break;
     }
 }
 
@@ -424,6 +391,94 @@ void thread_manager::dismiss_long_idle_worker()
                 return;
             }
         }
+    }
+}
+
+void thread_manager::schedule_sequence_task
+    (
+    module_task_cb& a_task_cb,
+    std::shared_ptr<abstract_task> a_task
+    )
+{
+    if( a_task_cb.m_executing_worker )
+    {
+        a_task_cb.m_executing_worker->post_task( a_task );
+        return;
+    }
+    else
+    {
+        std::shared_ptr<abstract_worker> worker;
+        worker = find_idle_worker();
+        if( worker )
+        {
+            assign_work( worker, a_task );
+            a_task_cb.m_executing_worker = worker;
+            return;
+        }
+        else
+        {
+            // There are maybe no more workers. So we cache this task.
+            a_task_cb.pending_tasks.push_back( a_task );
+            return;
+        }
+    }
+}
+
+void thread_manager::schedule_immediately_task
+    (
+    std::shared_ptr<abstract_task> a_task,
+    std::string const& a_module
+    )
+{
+    s_thread_module_owner = a_module;
+    auto_guard guard( [this]() { s_thread_module_owner.clear(); } );
+    auto detail_module = framework_manager::get_instance().get_module_manager().get_module( a_module );
+    if( detail_module )
+    {
+        detail_module->handle_task( a_task );
+    }
+    else
+    {
+        LogUtilError() << "No such module: " << a_module;
+    }
+    return;
+}
+
+void thread_manager::schedule_concurrently_task
+    (
+    std::shared_ptr<abstract_task> a_task
+    )
+{
+    std::shared_ptr<abstract_worker> worker;
+    worker = find_idle_worker();
+    if( worker )
+    {
+        assign_work( worker, a_task );
+    }
+    else
+    {
+        //There is no worker to do our work current.
+        m_work_need_assign.push_back( a_task );
+    }
+}
+
+void thread_manager::schedule_handler_task
+    (
+    std::shared_ptr<abstract_task> a_task
+    )
+{
+    std::string const& _module = a_task->get_target_module();
+    auto detail_module = framework_manager::get_instance().get_module_manager().get_module( _module );
+    auto handler = detail_module->get_task_handler();
+    if( handler )
+    {
+        handler->handle( std::move( a_task ) );
+    }
+    else
+    {
+        LogUtilError() << "module " << _module << " does not have a task handler."
+            " but it is module_type is handler_shchedule.";
+        schedule_concurrently_task( std::move( a_task ) );
     }
 }
 

@@ -9,7 +9,7 @@ class general_seq_task_runner_module : public abstract_module
 
 public:
 
-    general_seq_task_runner_module();
+    general_seq_task_runner_module( std::string a_module_name = std::string() );
 
     void initialize()override;
 

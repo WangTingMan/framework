@@ -11,6 +11,7 @@ namespace framework
 
 class abstract_task;
 class framework_event;
+class module_task_handler;
 
 class FRAMEWORK_EXPORT abstract_module
 {
@@ -75,6 +76,19 @@ public:
 
     powering_status const& get_power_status()const;
 
+    void set_task_handler( std::shared_ptr<module_task_handler> a_task_handler )
+    {
+        std::lock_guard locker( m_mutex );
+        m_task_handler = std::move( a_task_handler );
+        set_module_type( module_type::handler_shchedule );
+    }
+
+    std::shared_ptr<module_task_handler> get_task_handler()const
+    {
+        std::shared_lock locker( m_mutex );
+        return m_task_handler;
+    }
+
     static std::string to_string( powering_status const& a_status );
 
 protected:
@@ -96,6 +110,7 @@ private:
 
     mutable std::shared_mutex m_mutex;
     powering_status m_power_status = powering_status::power_on; // We treat a module do not need power on as default.
+    std::shared_ptr<module_task_handler> m_task_handler; // Not null if m_module_type equals handler_shchedule
 };
 
 }

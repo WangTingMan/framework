@@ -11,7 +11,6 @@ namespace framework
 abstract_module::powering_status const& abstract_module::get_power_status()const
 {
     std::shared_lock<std::shared_mutex> locker(m_mutex);
-    LogUtilInfo() << "moudle: " << m_module_name << " status: " << to_string(m_power_status);
     return m_power_status;
 }
 
