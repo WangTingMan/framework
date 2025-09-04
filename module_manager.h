@@ -37,6 +37,14 @@ public:
 
     std::shared_ptr<abstract_module> get_module( std::string a_name )const;
 
+    template<typename module_type>
+    std::shared_ptr<module_type> get_module( std::string a_name )const
+    {
+        auto module_ = get_module( a_name );
+        auto module_ret = std::dynamic_pointer_cast<module_type>( module_ );
+        return module_ret;
+    }
+
     void add_new_module( std::shared_ptr<framework::abstract_module> a_module );
 
     void register_power_changed_callback( std::function<void( powering_status )> a_callback )
