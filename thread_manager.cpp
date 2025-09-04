@@ -139,7 +139,7 @@ void thread_manager::post_task( std::shared_ptr<abstract_task> a_task )
     }
 
     module_task_cb& cb = m_module_types[_module];
-    if( cb.module_type_value == abstract_module::module_type::sequence_executing )
+    if( abstract_module::module_type::sequence_executing == cb.module_type_value )
     {
         if( cb.m_executing_worker )
         {
@@ -164,7 +164,7 @@ void thread_manager::post_task( std::shared_ptr<abstract_task> a_task )
             }
         }
     }
-    else if( cb.module_type_value == abstract_module::module_type::execute_task_when_post )
+    else if( abstract_module::module_type::execute_task_when_post == cb.module_type_value )
     {
         locker.unlock();
         s_thread_module_owner = cb.module_name;
