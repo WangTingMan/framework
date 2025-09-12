@@ -2,6 +2,7 @@
 #include <string>
 #include <string_view>
 #include <memory>
+#include <optional>
 #include <shared_mutex>
 
 #include "framework_export.h"
@@ -88,6 +89,17 @@ public:
         std::shared_lock locker( m_mutex );
         return m_task_handler;
     }
+
+    /**
+     * Try to get current executing thread id. A module may have many task to
+     * execute, and these tasks may executed in same thread, for example: for
+     * sequence_executing type, then all same moudle's task will be executed in
+     * same thread one by one. So this API to get current thrad id. But sometime,
+     * the framework do not schedule a thread for this module yet, then will return
+     * a empty optional value.
+     * Warning: this API only valid when type is sequence_executing or handler_shchedule.
+     */
+    std::optional<int> get_scheduled_thread_id()const;
 
     static std::string to_string( powering_status const& a_status );
 

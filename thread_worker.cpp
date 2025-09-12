@@ -108,9 +108,15 @@ void thread_worker::exit_later()
     post_task( tsk );
 }
 
+uint64_t thread_worker::work_thread_id()
+{
+    return m_thread_id;
+}
+
 void thread_worker::run_impl( std::shared_ptr<abstract_worker> a_current )
 {
     LogUtilDebug() << "thread work started.";
+    m_thread_id = framework::get_current_thread_id();
 
     std::vector<std::shared_ptr<abstract_task>> tasks;
     std::unique_lock<std::mutex> locker( m_mutex, std::defer_lock );

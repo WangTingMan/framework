@@ -40,6 +40,14 @@ void module_task_handler::handle( std::shared_ptr<abstract_task> a_task )
     framework_manager::get_instance().get_thread_manager().post_task( route_task );
 }
 
+std::optional<int> module_task_handler::get_current_executing_thread_id()const
+{
+    uint64_t id = 0;
+    id = framework_manager::get_instance().get_thread_manager()
+        .get_scheduled_thread_id( m_task_schedule_helper_module_name );
+    return static_cast<int>( id );
+}
+
 void module_task_handler::execute( std::shared_ptr<abstract_task> a_task )
 {
     if( a_task->get_target_module() == abstract_module::s_task_runner_module_name ||

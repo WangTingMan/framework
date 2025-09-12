@@ -36,6 +36,8 @@ public:
 
     void exit_later()override;
 
+    uint64_t work_thread_id()override;
+
 private:
 
     void run_impl( std::shared_ptr<abstract_worker> a_current );
@@ -45,6 +47,8 @@ private:
      * Return true then exit current thread
      */
     bool handle_task( std::shared_ptr<abstract_task> const& a_task );
+
+    uint64_t m_thread_id = 0;
 
     std::mutex m_mutex;
     std::condition_variable m_condition_variable;

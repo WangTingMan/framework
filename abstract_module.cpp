@@ -2,6 +2,7 @@
 #include "abstract_task.h"
 #include "framework_event.h"
 #include "framework_manager.h"
+#include "module_task_handler.h"
 
 #include "log_util.h"
 
@@ -55,6 +56,38 @@ void abstract_module::set_power_status( powering_status a_status )
         event_->set_source_module( m_module_name );
         framework_manager::get_instance().get_thread_manager().post_task( event_ );
     }
+}
+
+std::optional<int> abstract_module::get_scheduled_thread_id()const
+{
+    switch( get_module_type() )
+    {
+    case module_type::concurrently_executing:
+        [[fallthough]]
+    case module_type::execute_task_when_post:
+        return std::nullopt;
+    case module_type::handler_shchedule:
+        {
+            std::shared_ptr<module_task_handler> handler = get_task_handler();
+            if( handler )
+            {
+                return handler->get_current_executing_thread_id();
+            }
+        }
+        return std::nullopt;
+    case module_type::sequence_executing:
+        {
+            std::string const& name = get_name();
+            uint64_t id = 0;
+            id = framework_manager::get_instance().get_thread_manager().get_scheduled_thread_id(name);
+            return static_cast<int>( id );
+        }
+        break;
+    default:
+        break;
+    }
+
+    return std::nullopt;
 }
 
 }

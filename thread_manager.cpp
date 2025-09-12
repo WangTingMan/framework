@@ -119,7 +119,7 @@ void thread_manager::post_task( std::shared_ptr<abstract_task> a_task )
         if( a_task->get_task_type() == task_type::framework_event )
         {
             std::vector<std::shared_ptr<abstract_task>> tasks;
-            for( auto& ele : m_module_types )
+            for( auto& ele : m_modules_shcedule )
             {
                 std::shared_ptr<abstract_task> cloned_task = a_task->clone();
                 cloned_task->set_target_module( ele.first );
@@ -134,12 +134,12 @@ void thread_manager::post_task( std::shared_ptr<abstract_task> a_task )
         }
     }
 
-    if( !_module.empty() && !m_module_types.contains( _module ) )
+    if( !_module.empty() && !m_modules_shcedule.contains( _module ) )
     {
         LogUtilError() << "Such module has not registered: " << _module;
     }
 
-    module_task_cb& cb = m_module_types[_module];
+    module_task_cb& cb = m_modules_shcedule[_module];
     switch( cb.module_type_value )
     {
     case abstract_module::module_type::sequence_executing:
@@ -173,7 +173,7 @@ void thread_manager::push_idle_worker( std::shared_ptr<abstract_worker> a_worker
 {
     std::lock_guard<std::recursive_mutex> locker( m_mutex );
     bool task_assigned = false;
-    for( auto it = m_module_types.begin(); it != m_module_types.end(); ++it )
+    for( auto it = m_modules_shcedule.begin(); it != m_modules_shcedule.end(); ++it )
     {
         if( it->second.m_executing_worker == a_worker )
         {
@@ -248,15 +248,30 @@ void thread_manager::register_module_type
     cb.module_type_value = a_type;
 
     std::lock_guard<std::recursive_mutex> locker( m_mutex );
-    if( !m_module_types.contains( a_module_name ) )
+    if( !m_modules_shcedule.contains( a_module_name ) )
     {
-        m_module_types[a_module_name] = cb;
+        m_modules_shcedule[a_module_name] = cb;
     }
     else
     {
         LogUtilInfo() << "Already has " << a_module_name << ", change module tye.";
-        m_module_types[a_module_name].module_type_value = a_type;
+        m_modules_shcedule[a_module_name].module_type_value = a_type;
     }
+}
+
+uint64_t thread_manager::get_scheduled_thread_id( std::string const& a_moudle_name )const
+{
+    std::lock_guard locker( m_mutex );
+    for( auto it = m_modules_shcedule.begin(); it != m_modules_shcedule.end(); ++it )
+    {
+        if( a_moudle_name == it->first )
+        {
+            auto& worker = it->second.m_executing_worker;
+            if( worker )
+            return worker->work_thread_id();
+        }
+    }
+    return 0;
 }
 
 void thread_manager::remove_worker( std::shared_ptr<abstract_worker> a_worker )
@@ -286,7 +301,7 @@ void thread_manager::remove_worker( std::shared_ptr<abstract_worker> a_worker )
         }
     }
 
-    for( auto it = m_module_types.begin(); it != m_module_types.end(); ++it )
+    for( auto it = m_modules_shcedule.begin(); it != m_modules_shcedule.end(); ++it )
     {
         if( it->second.m_executing_worker.get() == a_worker.get() )
         {

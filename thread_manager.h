@@ -72,6 +72,8 @@ public:
         std::string a_module_name
         );
 
+    uint64_t get_scheduled_thread_id( std::string const& a_moudle_name )const;
+
     /**
      * Remove a worker from list. That is, that work is about to quit.
      */
@@ -144,8 +146,8 @@ private:
         std::shared_ptr<abstract_task> a_task
         );
 
-    std::recursive_mutex m_mutex;
-    std::unordered_map<std::string, module_task_cb> m_module_types;
+    mutable std::recursive_mutex m_mutex;
+    std::unordered_map<std::string, module_task_cb> m_modules_shcedule;
 
     uint32_t m_schedule_timer_id = 0;
     std::vector<std::shared_ptr<abstract_worker>> m_idle_worker; // The workers have no work to do

@@ -26,6 +26,8 @@ public:
 
     virtual void handle( std::shared_ptr<abstract_task> a_task );
 
+    virtual std::optional<int> get_current_executing_thread_id()const;
+
 private:
 
     void execute( std::shared_ptr<abstract_task> a_task );

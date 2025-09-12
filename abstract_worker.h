@@ -27,6 +27,11 @@ public:
 
     virtual void exit_later() = 0;
 
+    /**
+     * Return this worker located in which thread
+     */
+    virtual uint64_t work_thread_id() = 0;
+
 private:
 
 };
