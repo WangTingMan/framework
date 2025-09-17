@@ -1,4 +1,11 @@
-﻿#include <iostream>
+﻿
+/**
+ * Each module can have a task handler, which has an User-defined task schedule behavior.
+ * For example, we want two or more sequence modules' tasks will be executed in same sequence.
+ * And if two or more sequence modules have a same handler, then that same handler will
+ * schedule all these tasks which belong to that modules.
+ */
+#include <iostream>
 #include <random>
 #include <thread>
 

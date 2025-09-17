@@ -63,7 +63,6 @@ std::optional<int> abstract_module::get_scheduled_thread_id()const
     switch( get_module_type() )
     {
     case module_type::concurrently_executing:
-        [[fallthough]]
     case module_type::execute_task_when_post:
         return std::nullopt;
     case module_type::handler_shchedule:

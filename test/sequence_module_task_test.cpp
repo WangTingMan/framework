@@ -1,0 +1,193 @@
+
+/**
+ * Sequence modules' task scheduling press test.
+ * If this process does not crash in 10 minutes, then
+ * this testing pass.
+ */
+
+#include <format>
+#include <iostream>
+#include <random>
+#include <thread>
+
+#include "framework/abstract_module.h"
+#include "framework/framework_manager.h"
+#include "framework/log_util.h"
+#include "framework/module_task_handler.h"
+#include "framework/timer_module.h"
+
+#ifdef PRINT_LOG
+#define LOGGER LogUtilInfo
+#else
+#define LOGGER LogUtilIgnore
+#endif
+
+enum class module_with_handler_task_type : uint8_t
+{
+    invalid_task_type = 0,
+    random_access_dynamic_memory = 1,
+    allocate_memory = 2
+};
+
+class sequence_module_example_task : public framework::abstract_task
+{
+
+public:
+
+    sequence_module_example_task()
+    {
+    }
+
+    module_with_handler_task_type type = module_with_handler_task_type::invalid_task_type;
+};
+
+uint32_t  get_rand( uint32_t  a_min, uint32_t  a_max )
+{
+    return ( std::rand() % ( a_max - a_min + 1 ) ) + a_min;
+}
+
+class sequence_module_example : public framework::abstract_module
+{
+
+public:
+
+    sequence_module_example( std::string a_module_name )
+    {
+        set_name( a_module_name );
+        set_module_type( framework::abstract_module::module_type::sequence_executing );
+        allocate_new_memory();
+    }
+
+    /**
+     * initialize this module self.
+     */
+    void initialize()
+    {
+        set_power_status( abstract_module::powering_status::power_on );
+    }
+
+    /**
+     * deinitialize this module self
+     */
+    void deinitialize()
+    {
+        set_power_status( abstract_module::powering_status::power_off );
+    }
+
+    /**
+     * Handle a module task
+     */
+    void handle_task( std::shared_ptr<framework::abstract_task> a_task )
+    {
+        std::this_thread::sleep_for( std::chrono::milliseconds( get_rand( 0, 10 ) ) );
+        std::shared_ptr<sequence_module_example_task> detail_task;
+        detail_task = std::dynamic_pointer_cast<sequence_module_example_task>( a_task );
+        if( !detail_task )
+        {
+            return;
+        }
+
+        switch( detail_task->type )
+        {
+        case module_with_handler_task_type::random_access_dynamic_memory:
+            random_access_memory();
+            break;
+        case module_with_handler_task_type::allocate_memory:
+            allocate_new_memory();
+            break;
+        default:
+            break;
+        }
+    }
+
+    /**
+     * Handle a module event.
+     */
+    void handle_event( std::shared_ptr<framework::framework_event> a_event )
+    {
+
+    }
+
+private:
+
+    void allocate_new_memory()
+    {
+        if( m_dynamic_memory )
+        {
+            LOGGER() << "free memory: " << std::format( "{:16p}", (void*)m_dynamic_memory );
+            delete[] m_dynamic_memory;
+            m_dynamic_memory = nullptr;
+        }
+
+        m_memmory_size = get_rand( 1024, 4096 );
+        m_dynamic_memory = new char[m_memmory_size];
+        LOGGER() << "allocate memory: " << std::format( "{:16p}", (void*)m_dynamic_memory ) << ", size: " << m_memmory_size;
+    }
+
+    void random_access_memory()
+    {
+        uint32_t pos = get_rand( 0, m_memmory_size - 1 );
+        m_dynamic_memory[pos] = 'Y';
+        LOGGER() << "access memory: " << std::format( "{:16p}", (void*)m_dynamic_memory ) << ", pos = " << pos;
+    }
+
+    char* m_dynamic_memory = nullptr;
+    uint32_t m_memmory_size = 0;
+};
+
+std::vector<std::string> module_task_handler_names;
+
+std::vector<std::shared_ptr<framework::abstract_module>> generate_moudles()
+{
+    std::vector<std::shared_ptr<framework::abstract_module>> modules;
+
+    std::shared_ptr<sequence_module_example> moudle_;
+    for( int i = 0; i < 20; ++i )
+    {
+        std::string name{ "sequence_module_example_" };
+        name.append( std::to_string( i ) );
+        moudle_ = std::make_shared<sequence_module_example>( name );
+        modules.push_back( std::move( moudle_ ) );
+        module_task_handler_names.push_back( name );
+    }
+
+    return modules;
+}
+
+void generate_task()
+{
+    std::shared_ptr<sequence_module_example_task> task;
+    for( auto i = 0; i < 20000; ++i )
+    {
+        task = std::make_shared<sequence_module_example_task>();
+        srand( std::chrono::steady_clock::now().time_since_epoch().count() );
+        uint32_t index = get_rand( 0, module_task_handler_names.size() - 1 );
+        task->set_target_module( module_task_handler_names[index] );
+        uint32_t rand_value = get_rand( 0, 20 );
+        if( rand_value > 10 )
+        {
+            task->type = module_with_handler_task_type::allocate_memory;
+        }
+        else
+        {
+            task->type = module_with_handler_task_type::random_access_dynamic_memory;
+        }
+        framework::framework_manager::get_instance().get_thread_manager().post_task( task );
+    }
+}
+
+int main()
+{
+    framework::framework_manager::get_instance().run( std::bind( &generate_moudles ), false );
+    framework::framework_manager::get_instance().power_up();
+
+    for( int i = 0; i < 10; ++i )
+    {
+        std::thread th( &generate_task );
+        th.detach();
+    }
+
+    std::this_thread::sleep_for( std::chrono::minutes( 10 ) );
+    return 0;
+}
+
