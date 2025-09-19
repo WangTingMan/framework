@@ -218,30 +218,101 @@ const char* framework::get_name_from_path( const char* a_path )
     return file_name;
 }
 
+template <typename T>
+bool format_number_with_padding( char*& ptr, char* buffer_end, T value, int min_digits ) {
+    // determine how many prefix 0
+    int padding = 0;
+    if( min_digits > 0 ) {
+        T power = 1;
+        for( int i = 0; i < min_digits - 1; ++i ) {
+            power *= 10;
+        }
+        while( value < power && padding < min_digits ) {
+            padding++;
+            power /= 10;
+        }
+    }
+
+    // padding 0
+    for( int i = 0; i < padding && ptr < buffer_end; i++ ) {
+        *ptr++ = '0';
+    }
+
+    // format
+    auto result = std::to_chars( ptr, buffer_end, value );
+    if( result.ec != std::errc() ) {
+        return false;
+    }
+    ptr = result.ptr;
+    return true;
+}
+
 static std::string get_timestamp_string()
 {
-    std::chrono::system_clock::time_point now_ = std::chrono::system_clock::now();
-
     std::string stamp_str = framework::timer_module::to_booting_time_stamp(
         framework::timer_module::get_system_booting_time() );
 
-    std::time_t time_ = std::chrono::system_clock::to_time_t( now_ );
-    std::chrono::milliseconds millisecs = std::chrono::duration_cast< std::chrono::milliseconds >
-        ( now_ - std::chrono::system_clock::from_time_t( time_ ) );
-    tm tm_;
-#ifdef _MSC_VER
-    localtime_s( &tm_, &time_ );
+    auto now = std::chrono::system_clock::now();
+    auto now_sec = std::chrono::time_point_cast<std::chrono::seconds>( now );
+    auto us = std::chrono::duration_cast<std::chrono::microseconds>( now - now_sec ).count();
+
+    std::time_t now_time_t = std::chrono::system_clock::to_time_t( now_sec );
+    std::tm local_tm;
+#if defined(_MSC_VER) || defined(_WIN32)
+    localtime_s( &local_tm, &now_time_t );  // Windows
 #else
-    localtime_s( &time_, &tm_ );
+    localtime_r( &now_time_t, &local_tm );  // Linux/Unix
 #endif
 
-    char buffer[100];
-    snprintf( buffer, sizeof buffer,
-        "[%02d-%02d %02d:%02d:%02d.%03d]",  tm_.tm_mon + 1,
-        tm_.tm_mday, tm_.tm_hour, tm_.tm_min, tm_.tm_sec,
-        static_cast<int>( millisecs.count() ) );
+    std::array<char, 50> buffer;
+    char* ptr = buffer.data();
+    char* buffer_end = buffer.data() + buffer.size();
+    *ptr = '[';
+    ++ptr;
 
-    stamp_str.append( buffer );
+    if( !format_number_with_padding( ptr, buffer_end, local_tm.tm_year + 1900, 4 ) )
+    {
+        return "format error";
+    }
+    *ptr++ = '-';
+
+    if( !format_number_with_padding( ptr, buffer_end, local_tm.tm_mon + 1, 2 ) )
+    {
+        return "format error";
+    }
+    *ptr++ = '-';
+
+    if( !format_number_with_padding( ptr, buffer_end, local_tm.tm_mday, 2 ) )
+    {
+        return "format error";
+    }
+    *ptr++ = ' ';
+
+    if( !format_number_with_padding( ptr, buffer_end, local_tm.tm_hour, 2 ) )
+    {
+        return "format error";
+    }
+    *ptr++ = ':';
+
+    if( !format_number_with_padding( ptr, buffer_end, local_tm.tm_min, 2 ) )
+    {
+        return "format error";
+    }
+    *ptr++ = ':';
+
+    if( !format_number_with_padding( ptr, buffer_end, local_tm.tm_sec, 2 ) )
+    {
+        return "format error";
+    }
+    *ptr++ = '.';
+    if( !format_number_with_padding( ptr, buffer_end, us, 6 ) )
+    {
+        return "format error";
+    }
+    *ptr++ = ']';
+
+    stamp_str.append( buffer.data(), ptr );
+
     return stamp_str;
 }
 
