@@ -25,6 +25,7 @@
 #include "framework/framework_manager.h"
 #include "framework/timer_module.h"
 #include "framework/log_util.h"
+#include "framework/utils.h"
 
 std::promise<void> promis_;
 
@@ -55,23 +56,37 @@ void usually_timer( uint32_t a_id, std::string a_name )
 
 }
 
+void set_log_location( char const* a_module_path )
+{
+    const char* file = a_module_path;
+    const char* file_name = nullptr;
+
+    while( file && *( file++ ) != '\0' )
+    {
+        if( '/' == *file || '\\' == *file )
+        {
+            file_name = file + 1;
+        }
+    }
+
+    if( file_name == nullptr )
+    {
+        return;
+    }
+
+    std::string log_file_name;
+    log_file_name.assign( file_name );
+
+    std::string log_path( a_module_path, file_name );
+
+    framework::set_default_log_location( log_path, log_file_name );
+}
+
 int main(int argc, char* argv[])
 {
-    std::string module_path;
-    if (argc > 0)
+    if( argc > 0 )
     {
-        const char* file = argv[0];
-        const char* start = file;
-        const char* file_name = file;
-
-        while (file && *(file++) != '\0')
-        {
-            if ('/' == *file || '\\' == *file)
-            {
-                file_name = file + 1;
-            }
-        }
-        module_path.assign( start, file_name );
+        set_log_location( argv[0] );
     }
 
     framework::framework_manager::get_instance().run( nullptr );

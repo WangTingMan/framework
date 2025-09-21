@@ -185,6 +185,7 @@
     <ClInclude Include="..\..\thread_worker.h" />
     <ClInclude Include="..\..\timer_control_block.h" />
     <ClInclude Include="..\..\timer_module.h" />
+    <ClInclude Include="..\..\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

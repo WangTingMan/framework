@@ -128,5 +128,8 @@
     <ClInclude Include="..\..\module_task_handler.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\utils.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

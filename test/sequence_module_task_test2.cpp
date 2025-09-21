@@ -208,8 +208,39 @@ void generate_task(int task_count = 20000)
     }
 }
 
-int main()
+void set_log_location( char const* a_module_path )
 {
+    const char* file = a_module_path;
+    const char* file_name = nullptr;
+
+    while( file && *( file++ ) != '\0' )
+    {
+        if( '/' == *file || '\\' == *file )
+        {
+            file_name = file + 1;
+        }
+    }
+
+    if( file_name == nullptr )
+    {
+        return;
+    }
+
+    std::string log_file_name;
+    log_file_name.assign( file_name );
+
+    std::string log_path( a_module_path, file_name );
+
+    framework::set_default_log_location( log_path, log_file_name );
+}
+
+int main( int argc, char* argv[] )
+{
+    if( argc > 0 )
+    {
+        set_log_location( argv[0] );
+    }
+
     framework::framework_manager::get_instance().run( std::bind( &generate_moudles ), false );
     framework::framework_manager::get_instance().power_up();
 

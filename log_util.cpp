@@ -24,6 +24,7 @@
 #include "internal/platform.h"
 #include "timer_module.h"
 #include "thread_manager.h"
+#include "utils.h"
 
 #if __has_include( <base/time/time.h> )
 #ifndef USE_CHROME_BASE_LIBRARY
@@ -239,35 +240,6 @@ const char* framework::get_name_from_path( const char* a_path )
     return file_name;
 }
 
-template <typename T>
-bool format_number_with_padding( char*& ptr, char* buffer_end, T value, int min_digits ) {
-    // determine how many prefix 0
-    int padding = 0;
-    if( min_digits > 0 ) {
-        T power = 1;
-        for( int i = 0; i < min_digits - 1; ++i ) {
-            power *= 10;
-        }
-        while( value < power && padding < min_digits ) {
-            padding++;
-            power /= 10;
-        }
-    }
-
-    // padding 0
-    for( int i = 0; i < padding && ptr < buffer_end; i++ ) {
-        *ptr++ = '0';
-    }
-
-    // format
-    auto result = std::to_chars( ptr, buffer_end, value );
-    if( result.ec != std::errc() ) {
-        return false;
-    }
-    ptr = result.ptr;
-    return true;
-}
-
 static std::string get_timestamp_string()
 {
     std::string stamp_str = framework::timer_module::to_booting_time_stamp(
@@ -337,6 +309,12 @@ static std::string get_timestamp_string()
     return stamp_str;
 }
 
+static std::string& get_current_thread_id_string()
+{
+    static thread_local std::string id_str = std::format( "{:0>5d}", framework::get_current_thread_id() );
+    return id_str;
+}
+
 framework::log_impl::~log_impl()
 {
     bool ret = true;
@@ -357,7 +335,7 @@ framework::log_impl::~log_impl()
             std::stringstream ss;
             ss << get_timestamp_string() <<
                 "[" << m_logger_content->m_level << "]["
-               << get_current_thread_id() << "] [" << file
+               << get_current_thread_id_string() << "] [" << file
                << ":" << m_logger_content->m_line_number
                << "] ";
             if( !thread_manager::get_current_thread_module_owner().empty() )
