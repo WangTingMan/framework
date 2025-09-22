@@ -55,10 +55,6 @@
 
 #define LOGLINE_SIZE 1024
 
-#ifndef LOG_FOLDER
-#define LOG_FOLDER "E:/VCLAB/BluetoothStack/x64/Debug/"
-#endif
-
 #ifndef LOG_FILE_NAME
 #define LOG_FILE_NAME "frame_work"
 #endif
@@ -85,7 +81,6 @@ public:
     {
         m_log_line_callback = std::bind( &log_control_block::record_log,
             this, std::placeholders::_1 );
-        m_log_dir = LOG_FOLDER;
         m_log_file_name = LOG_FILE_NAME;
 #ifdef USE_CHROME_BASE_LIBRARY
         logging::SetLogMessageHandler( libchrome_log_callback );
