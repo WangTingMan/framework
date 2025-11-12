@@ -48,6 +48,11 @@ public:
 
     static std::string to_booting_time_stamp( int64_t a_booting_time );
 
+    static void timer_callback_wrapper( std::function<void()> a_callback, uint32_t, std::string )
+    {
+        a_callback();
+    }
+
     void initialize()override;
 
     void deinitialize()override;
@@ -77,6 +82,20 @@ public:
         std::string a_handle_module = ""
         );
 
+    uint32_t register_timer
+        (
+        std::function<void()> a_expire_callback,
+        std::chrono::milliseconds a_interval,
+        uint32_t a_trigger_times = 0,
+        std::string a_handle_module = ""
+        )
+    {
+        timer_control_block::timeout_callback expire_callback;
+        expire_callback = std::bind( &timer_callback_wrapper, a_expire_callback,
+            std::placeholders::_1, std::placeholders::_2 );
+        return register_timer( expire_callback, a_interval, a_trigger_times, a_handle_module );
+    }
+
     /**
      * Overwrite version. This version adds a parameter named a_timer_name.
      */
@@ -89,6 +108,21 @@ public:
         std::string a_handle_module = ""
         );
 
+    uint32_t register_timer
+        (
+        std::function<void()> a_expire_callback,
+        std::chrono::milliseconds a_interval,
+        std::string a_timer_name,
+        uint32_t a_trigger_times = 0,
+        std::string a_handle_module = ""
+        )
+    {
+        timer_control_block::timeout_callback expire_callback;
+        expire_callback = std::bind( &timer_callback_wrapper, a_expire_callback,
+            std::placeholders::_1, std::placeholders::_2 );
+        return register_timer( expire_callback, a_interval, a_timer_name, a_trigger_times, a_handle_module );
+    }
+
     uint32_t register_once_timer
         (
         timer_control_block::timeout_callback a_expire_callback,
@@ -98,6 +132,20 @@ public:
         )
     {
         return register_timer( a_expire_callback, a_interval, a_timer_name, 1, a_handle_module );
+    }
+
+    uint32_t register_once_timer
+        (
+        std::function<void()> a_expire_callback,
+        std::chrono::milliseconds a_interval,
+        std::string a_timer_name = "",
+        std::string a_handle_module = ""
+        )
+    {
+        timer_control_block::timeout_callback expire_callback;
+        expire_callback = std::bind( &timer_callback_wrapper, a_expire_callback,
+            std::placeholders::_1, std::placeholders::_2 );
+        return register_once_timer( expire_callback, a_interval, a_timer_name, a_handle_module );
     }
 
     /**
