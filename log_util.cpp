@@ -41,6 +41,7 @@
 #include <base/debug/stack_trace.h>
 #endif
 
+#include <array>
 #include <cstdarg>
 #include <cstdio>
 #include <chrono>
@@ -426,7 +427,7 @@ static inline std::string PringFormatLog( const char* a_format, va_list ap )
     return std::string( pBuffer );
 }
 
-void framework::util_logger::logging( const char* msg, ... ) const
+void framework::util_logger::logging_with_format( int a_parameter_count, const char* msg, ... ) const
 {
     if( m_is_log_eater )
     {

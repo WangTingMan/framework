@@ -205,7 +205,7 @@ std::string convert( std::u8string const& a_source )
     const char* src = reinterpret_cast< const char* >( a_source.c_str() );
     std::wstring wstr;
 #endif
-
+    return "";
 #endif
 }
 

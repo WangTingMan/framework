@@ -62,6 +62,32 @@ const char* get_name_from_path( const char* a_path );
 
 FRAMEWORK_EXPORT std::ostream& operator<<( std::ostream& a_os, log_level a_level );
 
+template<size_t N>
+constexpr size_t count_format_specs( const char( &a_fmt_string )[N] )
+{
+    size_t count = 0;
+    char current;
+    char next;
+    for (int i = 0; i < N - 1; ++i)
+    {
+        current = a_fmt_string[i];
+        next = a_fmt_string[i+1];
+        if (current == '%')
+        {
+            if (next == '\0')
+            {
+                break;
+            }
+
+            if (next != '%')
+            {
+                ++count;
+            }
+        }
+    }
+    return count;
+}
+
 class FRAMEWORK_EXPORT log_impl
 {
 
@@ -152,7 +178,24 @@ public:
         return log_;
     }
 
-    void logging( const char* msg, ... ) const;
+    template<size_t N, typename ...Types>
+    void logging( const char (&a_format_str)[N], Types... a_args)
+    {
+        constexpr size_t actual_count = sizeof...(a_args);
+        size_t expected_count = count_format_specs( a_format_str );
+
+        if (actual_count >= expected_count)
+        {
+            logging_with_format( actual_count, a_format_str, a_args... );
+        }
+        else
+        {
+            framework::util_logger( m_file_name, m_line_number, framework::log_level::error )
+                .logging() << "the a_format_str expected " << expected_count << " parameters. but "
+                << actual_count << " parameters!";
+            logging_with_format( actual_count, "%s", a_format_str );
+        }
+    }
 
     static void set_log_level( log_level level = log_level::verbose );
 
@@ -161,6 +204,7 @@ public:
     static log_level get_log_level();
 
 private:
+    void logging_with_format( int a_parameter_count, const char* msg, ... ) const;
     const char* m_file_name = nullptr;
     bool m_is_log_eater = false;
     int m_line_number = 0;
