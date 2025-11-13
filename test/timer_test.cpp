@@ -94,14 +94,19 @@ int main(int argc, char* argv[])
     auto timer_module_ = std::dynamic_pointer_cast< framework::timer_module>(
         framework::framework_manager::get_instance().get_module_manager().get_module(
             framework::timer_module::s_timer_module_name ) );
+    framework::timer_control_block::timeout_callback time_cb;
+    using cb_t = framework::timer_control_block::timeout_callback;
 
-    uint32_t timer1 = timer_module_->register_once_timer( std::bind( &once_timer, std::placeholders::_1, std::placeholders::_2 ),
+    time_cb = std::bind( &once_timer, std::placeholders::_1, std::placeholders::_2 );
+    uint32_t timer1 = timer_module_->register_once_timer( time_cb,
         std::chrono::seconds( 2 ), "once_timer");
 
-    uint32_t timer2 = timer_module_->register_timer( std::bind( &timer_handler_for_sometimes, std::placeholders::_1, std::placeholders::_2 ),
+    uint32_t timer2 = timer_module_->register_timer(
+        static_cast<cb_t>( std::bind( &timer_handler_for_sometimes, std::placeholders::_1, std::placeholders::_2 ) ),
         std::chrono::seconds( 1 ), "10_times_timer", 10 );
 
-    uint32_t timer3 = timer_module_->register_timer( std::bind( &usually_timer, std::placeholders::_1, std::placeholders::_2 ),
+    uint32_t timer3 = timer_module_->register_timer(
+        static_cast<cb_t>( std::bind( &usually_timer, std::placeholders::_1, std::placeholders::_2 ) ),
         std::chrono::seconds( 1 ), "usually_timer", 0 );
 
     std::future<void> fucture_ = promis_.get_future();
