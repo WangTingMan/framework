@@ -25,7 +25,7 @@
 #include <vector>
 #include <cstdint>
 
-#include "framework/framework_export.h"
+#include "../framework_export.h"
 
 namespace framework
 {

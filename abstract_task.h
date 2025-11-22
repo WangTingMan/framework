@@ -21,9 +21,10 @@
 */
 
 #pragma once
-#include <string>
-#include <functional>
 #include <cstdint>
+#include <functional>
+#include <string>
+#include <memory>
 
 #include "framework_export.h"
 
