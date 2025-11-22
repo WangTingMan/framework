@@ -63,6 +63,9 @@
     <ClCompile Include="..\..\module_task_handler.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\utils.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\abstract_info.h">

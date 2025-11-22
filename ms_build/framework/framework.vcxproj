@@ -161,6 +161,7 @@
     <ClCompile Include="..\..\thread_worker.cpp" />
     <ClCompile Include="..\..\timer_control_block.cpp" />
     <ClCompile Include="..\..\timer_module.cpp" />
+    <ClCompile Include="..\..\utils.cpp" />
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -39,8 +39,11 @@
 #pragma comment(lib, "libChromeBase.lib")
 #endif
 
+#include <algorithm>
 #include <ctime>
 #include <chrono>
+#include <ranges>
+#include <vector>
 
 #if __has_include( <stacktrace> )
 #include <stacktrace>
@@ -53,6 +56,8 @@ typedef HRESULT( WINAPI* SetThreadNameDescription )( HANDLE hThread,
    PCWSTR lpThreadDescription );
 #endif
 
+#include "../log_util.h"
+
 namespace framework
 {
 
@@ -61,6 +66,7 @@ std::wstring convert_to_wstring( std::string a_str )
     std::wstring ret_str;
 #ifdef HAS_LIBCHROME_LIBRARAY
     ret_str = base::SysNativeMBToWide( a_str );
+    return ret_str;
 #else
 
 #ifdef _WIN32
@@ -76,9 +82,12 @@ std::wstring convert_to_wstring( std::string a_str )
 
     ret_str.resize( charcount );
     MultiByteToWideChar( CP_ACP, 0, a_str.data(), mb_length, &ret_str[0], charcount );
+    return ret_str;
 #endif
 
 #endif
+
+    LogUtilFatal() << "No implementation!";
     return ret_str;
 }
 
@@ -87,6 +96,7 @@ std::string convert_to_string( std::wstring a_str )
     std::string str;
 #ifdef HAS_LIBCHROME_LIBRARAY
     str = base::SysWideToNativeMB( a_str );
+    return str;
 #else
 
 #ifdef _WIN32
@@ -103,9 +113,11 @@ std::string convert_to_string( std::wstring a_str )
     str.resize( charcount );
     WideCharToMultiByte( CP_ACP, 0, a_str.data(), wide_length,
         &str[0], charcount, NULL, NULL );
+    return str;
 #endif
 
 #endif
+    LogUtilFatal() << "No implementation!";
     return str;
 }
 
@@ -113,6 +125,7 @@ void set_thread_name( const std::string& a_name )
 {
 #ifdef HAS_LIBCHROME_LIBRARAY
     base::PlatformThread::SetName( a_name );
+    return;
 #else
 
 #ifdef _WIN32
@@ -127,9 +140,17 @@ void set_thread_name( const std::string& a_name )
             thread_name.c_str() );
         return;
     }
+    else
+    {
+        LogUtilError() << "This windows version cannot set thread name. But can throw an exception to"
+            " set thread name. Since just old windows need this step, so we are not going to make an "
+            "implementation for this.";
+        return;
+    }
 #endif
 
-#endif
+#endif  
+    LogUtilFatal() << "No implementation!";
 }
 
 uint64_t get_time_stamp()
@@ -147,6 +168,8 @@ uint64_t get_current_thread_id()
 {
 #ifdef _WIN32
     static thread_local uint64_t tid = ::GetCurrentThreadId();
+#else
+    LogUtilFatal() << "No implementation!";
 #endif
     return tid;
 }
@@ -188,24 +211,30 @@ std::u8string convert( std::string const& a_source )
 #endif
 
 #endif
+    LogUtilFatal() << "No implementation!";
 }
 
 std::string convert( std::u8string const& a_source )
 {
-#ifdef HAS_LIBCHROME_LIBRARAY
-    const char* src = reinterpret_cast< const char* >( a_source.c_str() );
-    std::wstring wstr;
-    bool conver_re = base::UTF8ToWide( src, a_source.size(), &wstr );
-    std::string r = base::SysWideToNativeMB( wstr );
-    r.push_back( '\0' );
-    return r.c_str();
-#else
+#if defined(_WIN32)
+    // UTF-8 -> UTF-16
+    int wlen = MultiByteToWideChar( CP_UTF8, 0,
+        reinterpret_cast<const char*>(a_source.c_str()),
+        a_source.size(), nullptr, 0 );
+    std::wstring wstr( wlen, 0 );
+    MultiByteToWideChar( CP_UTF8, 0,
+        reinterpret_cast<const char*>(a_source.c_str()),
+        a_source.size(), wstr.data(), wlen );
 
-#ifdef _WIN32
-    const char* src = reinterpret_cast< const char* >( a_source.c_str() );
-    std::wstring wstr;
-#endif
-    return "";
+    int mlen = WideCharToMultiByte( CP_ACP, 0, wstr.c_str(), wlen, nullptr, 0, nullptr, nullptr );
+    std::string str( mlen, 0 );
+    WideCharToMultiByte( CP_ACP, 0, wstr.c_str(), wlen, str.data(), mlen, nullptr, nullptr );
+    return str;
+#elif defined(__linux__) || defined(__APPLE__)
+    reinterpret_cast<const char*>(u8str.data());
+#else 
+    LogUtilFatal() << "No implementation!";
+    return std::string();
 #endif
 }
 
@@ -241,7 +270,9 @@ void base64_encode( char const* a_buffer, uint16_t a_size, std::string* output )
 {
 #ifdef HAS_LIBCHROME_LIBRARAY
     base::Base64Encode( a_buffer, a_size, output );
+    return;
 #endif
+    LogUtilFatal() << "No implementation!";
 }
 
 bool base64_decode( const std::string& input, std::vector<char>& output )
@@ -249,30 +280,9 @@ bool base64_decode( const std::string& input, std::vector<char>& output )
 #ifdef HAS_LIBCHROME_LIBRARAY
     return base::Base64Decode( input, output );
 #else
+    LogUtilFatal() << "No implementation!";
     return false;
 #endif
-}
-
-std::vector<std::string> split_string( std::string const& a_source, char a_split )
-{
-#ifdef HAS_LIBCHROME_LIBRARAY
-    std::string splitor;
-    splitor.push_back( a_split );
-    return base::SplitString( a_source, splitor, base::WhitespaceHandling::TRIM_WHITESPACE,
-        base::SplitResult::SPLIT_WANT_NONEMPTY );
-#else
-    return std::vector<std::string>();
-#endif
-}
-
-std::string trim_string( std::string const& a_source )
-{
-    std::string out;
-#ifdef HAS_LIBCHROME_LIBRARAY
-    base::StringPiece str = base::TrimWhitespaceASCII( a_source, base::TrimPositions::TRIM_ALL );
-    out = str.as_string();
-#endif
-    return out;
 }
 
 }

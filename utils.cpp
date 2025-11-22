@@ -20,35 +20,38 @@
   THE SOFTWARE.
 */
 
-#pragma once
-#include <string>
-#include <vector>
-#include <cstdint>
+#include "utils.h"
 
-#include "framework/framework_export.h"
+#include <ranges>
 
 namespace framework
 {
 
-FRAMEWORK_EXPORT void set_thread_name( const std::string& a_name );
+std::vector<std::string> split_string( std::string const& a_source, char a_split )
+{
+    std::vector<std::string> result;
 
-FRAMEWORK_EXPORT uint64_t get_time_stamp();
+    for (auto&& rng : a_source | std::views::split( a_split ))
+    {
+        result.emplace_back( &*rng.begin(), std::ranges::distance( rng ) );
+    }
 
-FRAMEWORK_EXPORT uint64_t get_current_thread_id();
-
-FRAMEWORK_EXPORT std::u8string convert( std::string const& a_source );
-
-FRAMEWORK_EXPORT std::string convert( std::u8string const& a_source );
-
-FRAMEWORK_EXPORT std::wstring convert_to_wstring( std::string a_str );
-
-FRAMEWORK_EXPORT std::string convert_to_string( std::wstring a_str );
-
-FRAMEWORK_EXPORT void base64_encode( char const* a_buffer, uint16_t a_size, std::string* output );
-
-FRAMEWORK_EXPORT bool base64_decode( const std::string& input, std::vector<char>& output );
-
-FRAMEWORK_EXPORT std::string current_call_stack();
-
+    return result;
 }
 
+std::string trim_string( std::string const& a_source )
+{
+    const char* whitespace = " \t\n\r\v\f";
+
+    std::string_view sv( a_source );
+    size_t start = sv.find_first_not_of( whitespace );
+    if (start == std::string_view::npos)
+    {
+        return std::string();
+    }
+
+    size_t end = sv.find_last_not_of( whitespace );
+    return std::string( sv.substr( start, end - start + 1 ) );
+}
+
+}

@@ -259,42 +259,42 @@ static std::string get_timestamp_string()
     *ptr = '[';
     ++ptr;
 
-    if( !format_number_with_padding( ptr, buffer_end, local_tm.tm_year + 1900, 4 ) )
+    if( !framework::format_number_with_padding( ptr, buffer_end, local_tm.tm_year + 1900, 4 ) )
     {
         return "format error";
     }
     *ptr++ = '-';
 
-    if( !format_number_with_padding( ptr, buffer_end, local_tm.tm_mon + 1, 2 ) )
+    if( !framework::format_number_with_padding( ptr, buffer_end, local_tm.tm_mon + 1, 2 ) )
     {
         return "format error";
     }
     *ptr++ = '-';
 
-    if( !format_number_with_padding( ptr, buffer_end, local_tm.tm_mday, 2 ) )
+    if( !framework::format_number_with_padding( ptr, buffer_end, local_tm.tm_mday, 2 ) )
     {
         return "format error";
     }
     *ptr++ = ' ';
 
-    if( !format_number_with_padding( ptr, buffer_end, local_tm.tm_hour, 2 ) )
+    if( !framework::format_number_with_padding( ptr, buffer_end, local_tm.tm_hour, 2 ) )
     {
         return "format error";
     }
     *ptr++ = ':';
 
-    if( !format_number_with_padding( ptr, buffer_end, local_tm.tm_min, 2 ) )
+    if( !framework::format_number_with_padding( ptr, buffer_end, local_tm.tm_min, 2 ) )
     {
         return "format error";
     }
     *ptr++ = ':';
 
-    if( !format_number_with_padding( ptr, buffer_end, local_tm.tm_sec, 2 ) )
+    if( !framework::format_number_with_padding( ptr, buffer_end, local_tm.tm_sec, 2 ) )
     {
         return "format error";
     }
     *ptr++ = '.';
-    if( !format_number_with_padding( ptr, buffer_end, us, 6 ) )
+    if( !framework::format_number_with_padding( ptr, buffer_end, us, 6 ) )
     {
         return "format error";
     }
