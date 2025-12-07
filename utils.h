@@ -83,4 +83,25 @@ FRAMEWORK_EXPORT std::vector<std::string> split_string( std::string const& a_sou
 
 FRAMEWORK_EXPORT std::string trim_string( std::string const& a_source );
 
+FRAMEWORK_EXPORT void base64_encode( char const* a_buffer, size_t a_size, std::string* a_output );
+
+FRAMEWORK_EXPORT bool base64_decode( const std::string& input, std::vector<char>& output );
+
+inline bool base64_decode( const std::string& a_input, std::vector<unsigned char>& a_output )
+{
+    std::vector<char> output;
+    bool result = base64_decode( a_input, output );
+    if (result)
+    {
+        a_output.clear();
+        a_output.reserve( output.size() );
+        for (auto& ele : output)
+        {
+            a_output.push_back( ele );
+        }
+    }
+
+    return result;
+}
+
 }

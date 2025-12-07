@@ -276,16 +276,5 @@ std::string current_call_stack()
     return call_stack;
 }
 
-void base64_encode( char const* a_buffer, uint16_t a_size, std::string* output )
-{
-    LogUtilFatal() << "No implementation!";
-}
-
-bool base64_decode( const std::string& input, std::vector<char>& output )
-{
-    LogUtilFatal() << "No implementation!";
-    return false;
-}
-
 }
 
