@@ -168,9 +168,11 @@ private:
         std::shared_ptr<abstract_task> a_task
         );
 
+    std::shared_ptr<abstract_worker> make_worker();
+
     mutable std::recursive_mutex m_mutex;
     std::unordered_map<std::string, module_task_cb> m_modules_shcedule;
-
+    uint32_t m_next_worker_id = 0;
     uint32_t m_schedule_timer_id = 0;
     std::vector<std::shared_ptr<abstract_worker>> m_idle_worker; // The workers have no work to do
     std::vector<std::shared_ptr<abstract_worker>> m_working_worker; // The workers are working

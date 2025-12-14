@@ -135,6 +135,13 @@ uint64_t thread_worker::work_thread_id()
     return m_thread_id;
 }
 
+void thread_worker::set_worker_name( std::string a_name )
+{
+    auto tsk = std::make_shared<executable_task>();
+    tsk->set_fun( std::bind( &framework::set_thread_name, a_name ), abstract_module::s_task_runner_module_name );
+    post_task( tsk );
+}
+
 void thread_worker::run_impl( std::shared_ptr<abstract_worker> a_current )
 {
     LogUtilDebug() << "thread work started.";

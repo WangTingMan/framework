@@ -46,10 +46,10 @@ void thread_manager::set_current_thread_module_owner( std::string a_module_name 
 
 void thread_manager::run( bool a_occupy_current_thread )
 {
-    std::shared_ptr<thread_worker> current_thread_worker;
+    std::shared_ptr<abstract_worker> current_thread_worker;
     if( a_occupy_current_thread )
     {
-        current_thread_worker = std::make_shared<thread_worker>();
+        current_thread_worker = make_worker();
     }
 
     std::unique_lock<std::recursive_mutex> locker( m_mutex );
@@ -58,8 +58,8 @@ void thread_manager::run( bool a_occupy_current_thread )
      */
     if( m_idle_worker.empty() )
     {
-        m_idle_worker.emplace_back( std::make_shared<thread_worker>() );
-        m_idle_worker.emplace_back( std::make_shared<thread_worker>() );
+        m_idle_worker.emplace_back( make_worker() );
+        m_idle_worker.emplace_back( make_worker() );
         for( auto& ele : m_idle_worker )
         {
             ele->run( ele, false );
@@ -342,7 +342,7 @@ void thread_manager::schedule_workers()
 
     if( m_working_worker.size() < s_max_worker_num )
     {
-        std::shared_ptr<abstract_worker> worker = std::make_shared<thread_worker>();
+        std::shared_ptr<abstract_worker> worker = make_worker();
         worker->run( worker, false );
         m_idle_worker.push_back( worker );
     }
@@ -517,6 +517,16 @@ void thread_manager::schedule_handler_task
             " but it is module_type is handler_shchedule.";
         schedule_concurrently_task( std::move( a_task ) );
     }
+}
+
+std::shared_ptr<abstract_worker> thread_manager::make_worker()
+{
+    std::string worker_name{ "worker" };
+    worker_name.append( std::to_string( m_next_worker_id++ ) );
+    std::shared_ptr<thread_worker> thread_worker_;
+    thread_worker_ = std::make_shared<thread_worker>();
+    thread_worker_->set_worker_name( worker_name );
+    return thread_worker_;
 }
 
 }

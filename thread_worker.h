@@ -60,6 +60,8 @@ public:
 
     uint64_t work_thread_id()override;
 
+    void set_worker_name( std::string a_name ) override;
+
 private:
 
     void run_impl( std::shared_ptr<abstract_worker> a_current );

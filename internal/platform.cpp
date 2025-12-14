@@ -126,6 +126,7 @@ static void set_current_thread_name( const char* a_name )
 void set_thread_name( const std::string& a_name )
 {
 
+    LogUtilInfo() << "set current name to " << a_name;
 #ifdef WINDOWS_OS
     // The SetThreadDescription API works even if no debugger is attached.
     static auto set_thread_description_func =

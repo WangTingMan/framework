@@ -22,6 +22,7 @@
 
 #include <future>
 #include <iostream>
+#include <thread>
 #include "framework/framework_manager.h"
 #include "framework/timer_module.h"
 #include "framework/log_util.h"

@@ -54,6 +54,8 @@ public:
      */
     virtual uint64_t work_thread_id() = 0;
 
+    virtual void set_worker_name( std::string a_name ) = 0;
+
 private:
 
 };

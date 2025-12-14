@@ -223,6 +223,14 @@ void set_log_location( char const* a_module_path )
     framework::set_default_log_location( log_path, log_file_name );
 }
 
+void start_generate_tasks()
+{
+    for (int i = 0; i < 10; ++i)
+    {
+        framework::framework_manager::get_instance().get_thread_manager().post_task( std::bind( &generate_task ) );
+    }
+}
+
 int main( int argc, char* argv[] )
 {
     if( argc > 0 )
@@ -230,16 +238,15 @@ int main( int argc, char* argv[] )
         set_log_location( argv[0] );
     }
 
-    framework::framework_manager::get_instance().run( std::bind( &generate_moudles ), false );
-    framework::framework_manager::get_instance().power_up();
+    framework::framework_manager::get_instance().get_thread_manager().post_task( []()
+        {
+            framework::framework_manager::get_instance().power_up();
+            start_generate_tasks();
+        } );
 
-    for( int i = 0; i < 10; ++i )
-    {
-        std::thread th( &generate_task );
-        th.detach();
-    }
 
-    std::this_thread::sleep_for( std::chrono::minutes( 10 ) );
+    framework::framework_manager::get_instance().run( std::bind( &generate_moudles ), true );
+ 
     return 0;
 }
 
