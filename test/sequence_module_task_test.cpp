@@ -193,7 +193,7 @@ void generate_task()
         {
             task->type = module_with_handler_task_type::random_access_dynamic_memory;
         }
-        framework::framework_manager::get_instance().get_thread_manager().post_task( task );
+        framework::framework_manager::get_instance().get_thread_manager().post_task( task, framework::source_here );
     }
 }
 
@@ -227,7 +227,7 @@ void start_generate_tasks()
 {
     for (int i = 0; i < 10; ++i)
     {
-        framework::framework_manager::get_instance().get_thread_manager().post_task( std::bind( &generate_task ) );
+        framework::framework_manager::get_instance().get_thread_manager().post_task( std::bind( &generate_task ), framework::source_here );
     }
 }
 
@@ -242,7 +242,7 @@ int main( int argc, char* argv[] )
         {
             framework::framework_manager::get_instance().power_up();
             start_generate_tasks();
-        } );
+        }, framework::source_here );
 
 
     framework::framework_manager::get_instance().run( std::bind( &generate_moudles ), true );

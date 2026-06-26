@@ -66,7 +66,7 @@ void timer_control_block::timer_triggered()
                 framework::framework_manager::get_instance().get_module_manager().
                 get_module( framework::timer_module::s_timer_module_name );
             std::shared_ptr<framework::timer_module> timer_module =
-                std::dynamic_pointer_cast< framework::timer_module >( _module );
+                std::static_pointer_cast< framework::timer_module >( _module );
             timer_module->undregister_timer( id );
             return false;
         };
@@ -77,7 +77,7 @@ void timer_control_block::timer_triggered()
             {
                 return false;
             };
-        framework_manager::get_instance().get_thread_manager().post_task( task );
+        framework_manager::get_instance().get_thread_manager().post_task( task, source_here );
     }
 }
 

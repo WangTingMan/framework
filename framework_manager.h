@@ -39,6 +39,8 @@ public:
 
     static framework_manager& get_instance();
 
+    framework_manager();
+
     thread_manager& get_thread_manager()
     {
         return m_thread_manager;
@@ -64,6 +66,8 @@ public:
 
     bool is_running()const;
 
+    uint16_t register_task_type(uint16_t a_count);
+
 private:
 
     void init( std::function< std::vector<std::shared_ptr<framework::abstract_module>>()> a_module_maker );
@@ -74,6 +78,7 @@ private:
 
     mutable std::shared_mutex m_mutex;
     bool m_is_running = false;
+    uint16_t m_next_task_type = 0;
 };
 
 }

@@ -134,5 +134,8 @@
     <ClInclude Include="..\..\utils.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\framework_config.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

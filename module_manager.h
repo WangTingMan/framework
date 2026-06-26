@@ -63,7 +63,7 @@ public:
     std::shared_ptr<module_type> get_module( std::string a_name )const
     {
         auto module_ = get_module( a_name );
-        auto module_ret = std::dynamic_pointer_cast<module_type>( module_ );
+        auto module_ret = module_ ? std::static_pointer_cast<module_type>( module_ ) : nullptr;
         return module_ret;
     }
 

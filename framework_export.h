@@ -28,13 +28,13 @@
 #define FRAMEWORK_EXPORT __declspec(dllexport)
 #else
 #define FRAMEWORK_EXPORT __declspec(dllimport)
-#endif  // defined(FRAMEWORK_COMPONENT_BUILD)
+#endif  // defined(FRAMEWORK_IMPLEMENTATION)
 
 #else  // defined(WIN32)
-#if defined(FRAMEWORK_COMPONENT_BUILD)
+#if defined(FRAMEWORK_IMPLEMENTATION)
 #define FRAMEWORK_EXPORT __attribute__((visibility("default")))
 #else
 #define FRAMEWORK_EXPORT
-#endif  // defined(FRAMEWORK_COMPONENT_BUILD)
+#endif  // defined(FRAMEWORK_IMPLEMENTATION)
 #endif
 

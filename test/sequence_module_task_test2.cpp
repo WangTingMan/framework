@@ -204,7 +204,7 @@ void generate_task(int task_count = 20000)
         {
             task->type = module_with_handler_task_type::check_value_and_string_type;
         }
-        framework::framework_manager::get_instance().get_thread_manager().post_task( task );
+        framework::framework_manager::get_instance().get_thread_manager().post_task( task, framework::source_here );
     }
 }
 

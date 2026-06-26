@@ -68,32 +68,24 @@ void module_manager::deinitialize()
 
 void module_manager::schedule_task( std::shared_ptr<abstract_task> a_task )
 {
-    if( task_type::normal_type == a_task->get_task_type() )
+    switch( a_task->get_task_type() )
     {
-        handle_task( a_task );
-    }
-    else if( task_type::framework_event == a_task->get_task_type() )
-    {
-        std::shared_ptr<framework_event> event_;
-        event_ = std::dynamic_pointer_cast< framework_event >( a_task );
-        if( event_ )
+    case task_type::executable_task:
         {
+            std::shared_ptr<executable_task> tsk;
+            tsk = std::static_pointer_cast<executable_task>( a_task );
+            tsk->run_task();
+        }
+    break;
+    case task_type::framework_event:
+        {
+            std::shared_ptr<framework_event> event_;
+            event_ = std::static_pointer_cast< framework_event >( a_task );
             handle_event( event_ );
         }
-        else
-        {
-            LogUtilError() << "error task type!";
-        }
-    }
-    else if( task_type::executable_task == a_task->get_task_type() )
-    {
-        std::shared_ptr<executable_task> tsk;
-        tsk = std::dynamic_pointer_cast< executable_task >( a_task );
-        tsk->run_task();
-    }
-    else
-    {
-        LogUtilError() << "unknown task type.";
+    break;
+    default:
+        handle_task( a_task );
     }
 }
 
@@ -284,7 +276,7 @@ bool module_manager::handle_module_power_changed( std::string a_module_name )
             } );
         task->set_target_module( s_general_seq_task_runner_module );
         task->set_source_module( get_name() );
-        framework_manager::get_instance().get_thread_manager().post_task( task );
+        framework_manager::get_instance().get_thread_manager().post_task( task, source_here );
     }
 
     return true;

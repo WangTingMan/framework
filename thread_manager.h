@@ -61,23 +61,24 @@ public:
      */
     void run( bool a_occupy_current_thread = false );
 
-    void post_task( std::function<void()> a_tsk );
+    void post_task( std::function<void()> a_tsk, source_position a_location );
 
     void post_delay_task
         (
         std::chrono::milliseconds a_delay_time,
-        std::function<void()> a_tsk
+        std::function<void()> a_tsk,
+        source_position a_location
         );
 
     /**
      * Post one task into thread pool
      */
-    void post_task( std::shared_ptr<abstract_task> a_task );
+    void post_task( std::shared_ptr<abstract_task> a_task, source_position a_location );
 
     /**
      * post some tasks into thread pool
      */
-    void post_task( std::vector<std::shared_ptr<abstract_task>> a_tasks );
+    void post_task( std::vector<std::shared_ptr<abstract_task>> a_tasks, source_position a_location );
 
     /**
      * Internal use. push a idle thread into thread poll which is waiting for

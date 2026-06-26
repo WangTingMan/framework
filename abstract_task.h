@@ -54,9 +54,10 @@ struct source_position
 
 enum class task_type : uint16_t
 {
-    normal_type = 0,
+    unknown_type = 0,
     executable_task = 1,
-    framework_event = 2
+    framework_event = 2,
+    timer_module_task = 3,
 };
 
 class FRAMEWORK_EXPORT abstract_task
@@ -86,11 +87,6 @@ public:
     void set_source_module( std::string a_module )
     {
         m_source_name = a_module;
-    }
-
-    void set_task_type( task_type a_type )
-    {
-        m_task_type = a_type;
     }
 
     task_type const& get_task_type()const
@@ -127,11 +123,18 @@ public:
 
 protected:
 
+    void set_task_type( task_type a_type )
+    {
+        m_task_type = a_type;
+    }
+
+protected:
+
     std::string m_target_name;
     std::string m_source_name;
     std::string m_debug_info;
     source_position m_position;
-    task_type m_task_type = task_type::normal_type;
+    task_type m_task_type = task_type::unknown_type;
 };
 
 }

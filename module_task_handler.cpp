@@ -59,7 +59,7 @@ void module_task_handler::handle( std::shared_ptr<abstract_task> a_task )
     auto route_task = std::make_shared<executable_task>();
     route_task->set_fun( std::bind( &module_task_handler::execute, this, std::move( a_task ) ),
         m_task_schedule_helper_module_name );
-    framework_manager::get_instance().get_thread_manager().post_task( route_task );
+    framework_manager::get_instance().get_thread_manager().post_task( route_task, source_here );
 }
 
 std::optional<int> module_task_handler::get_current_executing_thread_id()const
@@ -75,15 +75,10 @@ void module_task_handler::execute( std::shared_ptr<abstract_task> a_task )
     if( a_task->get_target_module() == abstract_module::s_task_runner_module_name ||
         a_task->get_target_module().empty() )
     {
-        auto runnable_task = std::dynamic_pointer_cast<executable_task>( a_task );
-        if( runnable_task )
+        if( a_task->get_task_type() == task_type::executable_task )
         {
+            auto runnable_task = std::static_pointer_cast< executable_task >( a_task );
             runnable_task->run_task();
-            return;
-        }
-        else
-        {
-            LogUtilError() << "Should not go to here!";
         }
         return;
     }

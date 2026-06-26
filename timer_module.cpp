@@ -51,7 +51,9 @@ class timer_module_timer_task : public abstract_task
 public:
 
     timer_module_timer_task() : schedule_duration(0)
-    {}
+    {
+        set_task_type(task_type::timer_module_task);
+    }
 
     timer_module_task_type type = timer_module_task_type::invalid_task_type;
     std::chrono::milliseconds schedule_duration;
@@ -105,11 +107,11 @@ void timer_module::deinitialize()
 void timer_module::handle_task( std::shared_ptr<abstract_task> a_task )
 {
     std::shared_ptr<timer_module_timer_task> task;
-    task = std::dynamic_pointer_cast<timer_module_timer_task>( a_task );
-    if( !task )
+    if( a_task->get_task_type() != task_type::timer_module_task )
     {
         return;
     }
+    task = std::static_pointer_cast<timer_module_timer_task>( a_task );
 
     if( task->type != timer_module_task_type::timer_schedule_task )
     {
@@ -299,7 +301,7 @@ void timer_module::handle_timer_expired()
         }
 
         task->set_source_module( get_name() );
-        framework_manager::get_instance().get_thread_manager().post_task( task );
+        framework_manager::get_instance().get_thread_manager().post_task( task, source_here );
 
         _timer->timer_triggered();
         remain_trigger_times = _timer->get_remain_trigger_timers();
@@ -356,7 +358,7 @@ void timer_module::make_schedule_task_if_need( int64_t a_front_time_to_execute )
     LogTimerDebug() << "wait until " << to_booting_time_stamp( m_weak_up_time );
     task->schedule_duration = std::chrono::milliseconds( a_front_time_to_execute );
 
-    framework_manager::get_instance().get_thread_manager().post_task( task );
+    framework_manager::get_instance().get_thread_manager().post_task( task, source_here );
 }
 
 }

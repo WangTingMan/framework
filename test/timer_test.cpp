@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
 
     framework::framework_manager::get_instance().run( nullptr );
     framework::framework_manager::get_instance().power_up();
-    auto timer_module_ = std::dynamic_pointer_cast< framework::timer_module>(
+    auto timer_module_ = std::static_pointer_cast<framework::timer_module>(
         framework::framework_manager::get_instance().get_module_manager().get_module(
             framework::timer_module::s_timer_module_name ) );
     framework::timer_control_block::timeout_callback time_cb;

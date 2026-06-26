@@ -76,7 +76,7 @@ void abstract_module::set_power_status( powering_status a_status )
         event_->m_module_name = m_module_name;
         event_->m_event_type = event_type::power_status_changed;
         event_->set_source_module( m_module_name );
-        framework_manager::get_instance().get_thread_manager().post_task( event_ );
+        framework_manager::get_instance().get_thread_manager().post_task( event_, source_here );
     }
 }
 

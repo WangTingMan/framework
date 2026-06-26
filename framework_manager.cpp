@@ -36,6 +36,15 @@ framework_manager& framework_manager::get_instance()
     return instance;
 }
 
+framework_manager::framework_manager()
+    : m_next_task_type(20)
+{
+    /**
+     * See abstract_task.h.
+     * This framework uses 20 reserved task type.
+     */
+}
+
 bool  framework_manager::is_running()const
 {
     std::shared_lock<std::shared_mutex> locker( m_mutex );
@@ -48,13 +57,19 @@ void framework_manager::run
     bool a_occupy_current_thread
     )
 {
-    std::lock_guard<std::shared_mutex> locker( m_mutex );
+    std::unique_lock<std::shared_mutex> locker( m_mutex );
     if( m_is_running )
     {
         return;
     }
+    locker.unlock();
+
     init( std::move( a_module_maker ) );
+
+    locker.lock();
     m_is_running = true;
+    locker.unlock();
+
     m_thread_manager.run( a_occupy_current_thread );
 }
 
@@ -62,13 +77,22 @@ void framework_manager::power_up()
 {
     std::shared_ptr<framework_event> event_ = std::make_shared<framework_event>();
     event_->m_event_type = event_type::power_on;
-    m_thread_manager.post_task( event_ );
+    m_thread_manager.post_task( event_, source_here );
 }
 
 void framework_manager::init( std::function< std::vector<std::shared_ptr<framework::abstract_module>>()> a_module_maker )
 {
     m_module_manager.load_modules( std::move( a_module_maker ) );
     m_module_manager.initialize();
+}
+
+uint16_t framework_manager::register_task_type( uint16_t a_count )
+{
+    uint16_t available_start = 0;
+    std::lock_guard<std::shared_mutex> locker( m_mutex );
+    available_start = m_next_task_type;
+    m_next_task_type += a_count;
+    return available_start;
 }
 
 }

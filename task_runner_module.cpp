@@ -50,9 +50,9 @@ void task_runner_module::handle_task( std::shared_ptr<abstract_task> a_task )
     if( a_task->get_target_module() == s_task_runner_module_name ||
         a_task->get_target_module().empty() )
     {
-        auto runnable_task = std::dynamic_pointer_cast< executable_task >( a_task );
-        if( runnable_task )
+        if( a_task->get_task_type() == task_type::executable_task )
         {
+            auto runnable_task = std::static_pointer_cast< executable_task >( a_task );
             runnable_task->run_task();
         }
     }

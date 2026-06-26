@@ -36,10 +36,14 @@
 #include "framework/module_task_handler.h"
 #include "framework/timer_module.h"
 
+static uint16_t s_task_type_start;
+
 enum class module_with_handler_task_type : uint8_t
 {
     invalid_task_type = 0,
-    log_printing_type = 1
+    log_printing_type = 1,
+
+    total_handler_task_type_count
 };
 
 class module_with_handler_task : public framework::abstract_task
@@ -49,6 +53,9 @@ public:
 
     module_with_handler_task()
     {
+        uint16_t type = static_cast< uint16_t >( module_with_handler_task_type::log_printing_type );
+        type += s_task_type_start;
+        set_task_type(framework::task_type( type ));
     }
 
     module_with_handler_task_type type = module_with_handler_task_type::invalid_task_type;
@@ -86,7 +93,20 @@ public:
     void handle_task( std::shared_ptr<framework::abstract_task> a_task )
     {
         std::shared_ptr<module_with_handler_task> detail_task;
-        detail_task = std::dynamic_pointer_cast<module_with_handler_task>( a_task );
+        uint16_t type = static_cast<uint16_t>( a_task->get_task_type() );
+        if( type < s_task_type_start ||
+            type > s_task_type_start + static_cast<uint16_t>( module_with_handler_task_type::total_handler_task_type_count ) )
+        {
+            return;
+        }
+
+        type -= s_task_type_start;
+        module_with_handler_task_type detail_type = static_cast<module_with_handler_task_type>( type );
+        if( detail_type == module_with_handler_task_type::log_printing_type )
+        {
+            detail_task = std::static_pointer_cast< module_with_handler_task >( a_task );
+        }
+
         if( !detail_task )
         {
             return;
@@ -178,6 +198,9 @@ void set_log_location( char const* a_module_path )
 
 int main( int argc, char* argv[] )
 {
+    std::shared_ptr<module_with_handler_task> task;
+    task = std::make_shared<module_with_handler_task>();
+
     if( argc > 0 )
     {
         set_log_location( argv[0] );
@@ -186,7 +209,11 @@ int main( int argc, char* argv[] )
     framework::framework_manager::get_instance().run( std::bind(&generate_moudles ), false );
     framework::framework_manager::get_instance().power_up();
 
-    std::shared_ptr<module_with_handler_task> task;
+    s_task_type_start = framework::framework_manager::get_instance().register_task_type(
+        uint16_t( module_with_handler_task_type::total_handler_task_type_count ) );
+
+    std::this_thread::sleep_for( std::chrono::seconds( 5 ) );
+
     for( auto i = 0; i < 2000; ++i )
     {
         task = std::make_shared<module_with_handler_task>();
@@ -194,7 +221,7 @@ int main( int argc, char* argv[] )
         int index = get_rand( 0, module_task_handler_names.size() - 1 );
         task->set_target_module( module_task_handler_names[index] );
         task->type = module_with_handler_task_type::log_printing_type;
-        framework::framework_manager::get_instance().get_thread_manager().post_task( task );
+        framework::framework_manager::get_instance().get_thread_manager().post_task( task, framework::source_here );
     }
 
     std::this_thread::sleep_for( std::chrono::minutes( 5 ) );
@@ -206,7 +233,7 @@ int main( int argc, char* argv[] )
         int index = get_rand( 0, module_task_handler_names.size() - 1 );
         task->set_target_module( module_task_handler_names[index] );
         task->type = module_with_handler_task_type::log_printing_type;
-        framework::framework_manager::get_instance().get_thread_manager().post_task( task );
+        framework::framework_manager::get_instance().get_thread_manager().post_task( task, framework::source_here );
     }
 
 

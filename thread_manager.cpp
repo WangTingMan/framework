@@ -78,7 +78,7 @@ void thread_manager::run( bool a_occupy_current_thread )
         {
             auto _module = framework_manager::get_instance()
                 .get_module_manager().get_module( abstract_module::s_timer_module_name );
-            auto _timer_module = std::dynamic_pointer_cast< timer_module >( _module );
+            auto _timer_module = std::static_pointer_cast<timer_module>( _module );
             auto timer_cb = [this]( uint32_t, std::string )->bool
             {
                 schedule_workers();
@@ -101,20 +101,22 @@ void thread_manager::run( bool a_occupy_current_thread )
 
 }
 
-void thread_manager::post_task( std::function<void()> a_tsk )
+void thread_manager::post_task( std::function<void()> a_tsk, source_position a_location )
 {
     if( a_tsk )
     {
         auto tsk =  std::make_shared<executable_task>();
         tsk->set_fun( a_tsk, abstract_module::s_task_runner_module_name );
-        post_task( tsk );
+        tsk->set_position( a_location );
+        post_task( tsk, source_here );
     }
 }
 
 void thread_manager::post_delay_task
     (
     std::chrono::milliseconds a_delay_time,
-    std::function<void()> a_tsk
+    std::function<void()> a_tsk,
+    source_position a_location
     )
 {
     if( !a_tsk )
@@ -122,17 +124,22 @@ void thread_manager::post_delay_task
         return;
     }
 
-    auto timer_module_ = std::dynamic_pointer_cast< framework::timer_module >(
+    auto timer_module_ = std::static_pointer_cast< framework::timer_module >(
         framework::framework_manager::get_instance().get_module_manager().get_module(
             framework::timer_module::s_timer_module_name ) );
-    timer_module_->register_once_timer( [a_tsk]( uint32_t, std::string )
+    timer_module_->register_once_timer( [a_tsk]( uint32_t, std::string a_name )
         {
             a_tsk();
-        }, a_delay_time );
+        }, a_delay_time, a_location.to_string() );
 }
 
-void thread_manager::post_task( std::shared_ptr<abstract_task> a_task )
+void thread_manager::post_task( std::shared_ptr<abstract_task> a_task, source_position a_location )
 {
+    if( a_task->get_position().m_file == nullptr )
+    {
+        a_task->set_position(a_location);
+    }
+
     std::unique_lock<std::recursive_mutex> locker( m_mutex );
 
     std::string const& _module = a_task->get_target_module();
@@ -147,7 +154,7 @@ void thread_manager::post_task( std::shared_ptr<abstract_task> a_task )
                 cloned_task->set_target_module( ele.first );
                 tasks.emplace_back( std::move( cloned_task ) );
             }
-            post_task( std::move( tasks ) );
+            post_task( std::move( tasks ), a_location );
             return;
         }
         else
@@ -183,11 +190,11 @@ void thread_manager::post_task( std::shared_ptr<abstract_task> a_task )
     }
 }
 
-void thread_manager::post_task( std::vector<std::shared_ptr<abstract_task>> a_tasks )
+void thread_manager::post_task( std::vector<std::shared_ptr<abstract_task>> a_tasks, source_position a_location )
 {
     for( auto& ele : a_tasks )
     {
-        post_task( ele );
+        post_task( ele, a_location );
     }
 }
 

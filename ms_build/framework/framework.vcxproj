@@ -112,12 +112,14 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;FRAMEWORK_EXPORTS;WIN32_LEAN_AND_MEAN;FRAMEWORK_IMPLEMENTATION;_WINDOWS;_USRDLL;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;FRAMEWORK_EXPORTS;WIN32_LEAN_AND_MEAN;FRAMEWORK_IMPLEMENTATION;_WINDOWS;_USRDLL;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4251</DisableSpecificWarnings>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -171,6 +173,7 @@
     <ClInclude Include="..\..\abstract_worker.h" />
     <ClInclude Include="..\..\auto_guard.h" />
     <ClInclude Include="..\..\executable_task.h" />
+    <ClInclude Include="..\..\framework_config.h" />
     <ClInclude Include="..\..\framework_event.h" />
     <ClInclude Include="..\..\framework_export.h" />
     <ClInclude Include="..\..\framework_manager.h" />
