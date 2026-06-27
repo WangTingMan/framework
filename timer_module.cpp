@@ -26,6 +26,7 @@
 #include "log_util.h"
 #include "framework_manager.h"
 #include "framework_event.h"
+#include "framework/internal/platform.h"
 
 #include <chrono>
 #include <limits>
@@ -39,24 +40,15 @@
 namespace framework
 {
 
-enum class timer_module_task_type : uint8_t
-{
-    invalid_task_type = 0,
-    timer_schedule_task = 1
-};
-
 class timer_module_timer_task : public abstract_task
 {
 
 public:
 
-    timer_module_timer_task() : schedule_duration(0)
+    timer_module_timer_task()
     {
         set_task_type(task_type::timer_module_task);
     }
-
-    timer_module_task_type type = timer_module_task_type::invalid_task_type;
-    std::chrono::milliseconds schedule_duration;
 };
 
 timer_module::timer_module()
@@ -94,6 +86,16 @@ std::string timer_module::to_booting_time_stamp( int64_t a_booting_time )
     return buffer;
 }
 
+void timer_module::timer_timeout_callback()
+{
+    std::shared_ptr<timer_module_timer_task> task;
+    task = std::make_shared<timer_module_timer_task>();
+    task->set_source_module( abstract_module::s_timer_module_name );
+    task->set_target_module( abstract_module::s_timer_module_name );
+    task->set_position( source_here );
+    framework_manager::get_instance().get_thread_manager().post_task( task, source_here );
+}
+
 void timer_module::initialize()
 {
     set_power_status( abstract_module::powering_status::power_on );
@@ -106,27 +108,10 @@ void timer_module::deinitialize()
 
 void timer_module::handle_task( std::shared_ptr<abstract_task> a_task )
 {
-    std::shared_ptr<timer_module_timer_task> task;
     if( a_task->get_task_type() != task_type::timer_module_task )
     {
         return;
     }
-    task = std::static_pointer_cast<timer_module_timer_task>( a_task );
-
-    if( task->type != timer_module_task_type::timer_schedule_task )
-    {
-        return;
-    }
-
-    std::unique_lock<std::mutex> locker( m_condition_mutex );
-    if( task->schedule_duration > std::chrono::milliseconds( 0 ) )
-    {
-        m_condition_waiting = true;
-        m_condition.wait_for( locker, task->schedule_duration );
-    }
-    m_condition_waiting = false;
-    locker.unlock();
-
     handle_timer_expired();
 }
 
@@ -336,29 +321,12 @@ void timer_module::handle_timer_expired()
 
 void timer_module::make_schedule_task_if_need( int64_t a_front_time_to_execute )
 {
-    std::unique_lock<std::mutex> locker( m_condition_mutex );
-    if( m_condition_waiting &&
-        m_weak_up_time > a_front_time_to_execute )
+    auto next_timeout = a_front_time_to_execute - get_system_booting_time();
+    if (next_timeout < 1)
     {
-        LogTimerDebug() << "notify timer waiter.";
-        m_condition.notify_all();
-        return;
+        next_timeout = 5;
     }
-
-    m_weak_up_time = a_front_time_to_execute;
-    locker.unlock();
-
-    std::shared_ptr<timer_module_timer_task> task;
-    task = std::make_shared<timer_module_timer_task>();
-    task->set_source_module( get_name() );
-    task->set_target_module( get_name() );
-    task->set_position( source_here );
-    task->type = timer_module_task_type::timer_schedule_task;
-    a_front_time_to_execute -= get_system_booting_time();
-    LogTimerDebug() << "wait until " << to_booting_time_stamp( m_weak_up_time );
-    task->schedule_duration = std::chrono::milliseconds( a_front_time_to_execute );
-
-    framework_manager::get_instance().get_thread_manager().post_task( task, source_here );
+    set_timer( next_timeout );
 }
 
 }

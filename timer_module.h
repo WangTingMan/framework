@@ -53,6 +53,8 @@ public:
         a_callback();
     }
 
+    static void timer_timeout_callback();
+
     void initialize()override;
 
     void deinitialize()override;
@@ -173,11 +175,6 @@ private:
     std::list<std::shared_ptr<timer_control_block>> m_timers;
 
     std::atomic_uint32_t m_timer_count = 1;
-
-    std::mutex m_condition_mutex;
-    std::condition_variable m_condition;
-    std::atomic_bool m_condition_waiting = false;
-    uint64_t m_weak_up_time = 0xFFFFFFFF; // The time from system up time to wake up
 };
 
 }

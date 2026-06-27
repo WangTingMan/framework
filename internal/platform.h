@@ -108,5 +108,7 @@ FRAMEWORK_EXPORT std::string convert_to_string( std::wstring a_str );
 
 FRAMEWORK_EXPORT std::string current_call_stack();
 
+void set_timer( uint32_t a_timeout );
+
 }
 
