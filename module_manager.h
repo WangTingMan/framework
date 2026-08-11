@@ -94,7 +94,7 @@ private:
 
     std::tuple<size_t, size_t, size_t, size_t, size_t> get_module_status();
 
-    std::shared_mutex m_pro_mutex;
+    mutable std::shared_mutex m_pro_mutex;
     std::unordered_map<std::string, std::shared_ptr<abstract_module>> m_modules;
     std::function<void( powering_status )> m_power_changed_callback;
 };

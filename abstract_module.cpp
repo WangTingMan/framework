@@ -31,7 +31,7 @@
 namespace framework
 {
 
-abstract_module::powering_status const& abstract_module::get_power_status()const
+abstract_module::powering_status abstract_module::get_power_status()const
 {
     std::shared_lock<std::shared_mutex> locker(m_mutex);
     return m_power_status;

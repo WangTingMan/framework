@@ -74,6 +74,10 @@
     <IncludePath>$(ProjectDir)../../../;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(ProjectDir)../../../;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -133,12 +137,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;FRAMEWORK_EXPORTS;_WINDOWS;_USRDLL;WIN32_LEAN_AND_MEAN;FRAMEWORK_IMPLEMENTATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;FRAMEWORK_EXPORTS;_WINDOWS;_USRDLL;WIN32_LEAN_AND_MEAN;FRAMEWORK_IMPLEMENTATION;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <DisableSpecificWarnings>4251</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -160,6 +166,7 @@
     <ClCompile Include="..\..\module_task_handler.cpp" />
     <ClCompile Include="..\..\task_runner_module.cpp" />
     <ClCompile Include="..\..\thread_manager.cpp" />
+    <ClCompile Include="..\..\thread_pool_watchdog.cpp" />
     <ClCompile Include="..\..\thread_worker.cpp" />
     <ClCompile Include="..\..\timer_control_block.cpp" />
     <ClCompile Include="..\..\timer_module.cpp" />
@@ -186,6 +193,7 @@
     <ClInclude Include="..\..\module_task_handler.h" />
     <ClInclude Include="..\..\task_runner_module.h" />
     <ClInclude Include="..\..\thread_manager.h" />
+    <ClInclude Include="..\..\thread_pool_watchdog.h" />
     <ClInclude Include="..\..\thread_worker.h" />
     <ClInclude Include="..\..\timer_control_block.h" />
     <ClInclude Include="..\..\timer_module.h" />

@@ -105,7 +105,7 @@ public:
     {
         std::this_thread::sleep_for( std::chrono::milliseconds( get_rand( 0, 10 ) ) );
         std::shared_ptr<sequence_module_example_task> detail_task;
-        detail_task = std::dynamic_pointer_cast<sequence_module_example_task>( a_task );
+        detail_task = std::static_pointer_cast<sequence_module_example_task>( a_task );
         if( !detail_task )
         {
             return;

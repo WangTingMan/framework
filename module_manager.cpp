@@ -292,7 +292,7 @@ std::tuple<size_t, size_t, size_t, size_t, size_t> module_manager::get_module_st
     std::lock_guard<std::shared_mutex> locker( m_pro_mutex );
     for( auto& ele : m_modules )
     {
-        auto& status = ele.second->get_power_status();
+        auto status = ele.second->get_power_status();
         switch( status )
         {
         case powering_status::power_on:
@@ -354,6 +354,7 @@ void module_manager::load_modules( std::function< std::vector<std::shared_ptr<fr
 
 std::shared_ptr<abstract_module> module_manager::get_module( std::string a_name )const
 {
+    std::lock_guard<std::shared_mutex> locker( m_pro_mutex );
     auto it = m_modules.find( a_name );
     if( it != m_modules.end() )
     {
@@ -370,10 +371,21 @@ void module_manager::add_new_module( std::shared_ptr<framework::abstract_module>
         return;
     }
 
-    std::lock_guard<std::shared_mutex> locker( m_pro_mutex );
+    bool detail_added = false;
+    std::unique_lock<std::shared_mutex> locker( m_pro_mutex );
     if( m_modules.find( a_module->get_name() ) == m_modules.end() )
     {
         m_modules[a_module->get_name()] = a_module;
+        detail_added = true;
+    }
+    else
+    {
+        LogUtilError() << "Already has module: " << a_module->get_name();
+    }
+    locker.unlock();
+
+    if( detail_added )
+    {
         framework_manager::get_instance().get_thread_manager()
             .register_module_type( a_module->get_module_type(),
                 a_module->get_name() );
@@ -397,10 +409,6 @@ void module_manager::add_new_module( std::shared_ptr<framework::abstract_module>
         {
             LogUtilError() << "unknown power status.";
         }
-    }
-    else
-    {
-        LogUtilError() << "Already has module: " << a_module->get_name();
     }
 }
 

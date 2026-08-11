@@ -23,6 +23,7 @@
 #pragma once
 #include "abstract_worker.h"
 #include "abstract_module.h"
+#include "thread_pool_watchdog.h"
 #include <vector>
 #include <mutex>
 #include <unordered_map>
@@ -106,7 +107,15 @@ public:
 
     static void set_current_thread_module_owner( std::string a_module_name );
 
+    thread_pool_watchdog& get_watchdog()
+    {
+        return m_watchdog;
+    }
+
 private:
+
+    // Declared first so it outlives workers during manager destruction.
+    thread_pool_watchdog m_watchdog;
 
     /**
      * Schedule threads.

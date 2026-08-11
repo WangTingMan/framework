@@ -52,7 +52,7 @@ public:
 
 private:
 
-    void execute( std::shared_ptr<abstract_task> a_task );
+    static void execute( std::shared_ptr<abstract_task> a_task );
 
     std::string m_task_schedule_helper_module_name;
 };

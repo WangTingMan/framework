@@ -66,6 +66,9 @@
     <ClCompile Include="..\..\utils.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\thread_pool_watchdog.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\abstract_info.h">
@@ -135,6 +138,9 @@
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="..\..\framework_config.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thread_pool_watchdog.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>

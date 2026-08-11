@@ -178,7 +178,6 @@ uint32_t timer_module::register_timer
             } );
 
     auto front_time_to_execute = m_timers.front()->get_time_to_execute();
-    locker.unlock();
 
     if( front_time_to_execute < nextFire )
     {

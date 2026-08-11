@@ -6,3 +6,4 @@
 x64/
 ipch/
 *.vcxproj.user
+*.patch

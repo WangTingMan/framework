@@ -57,7 +57,7 @@ module_task_handler::~module_task_handler()
 void module_task_handler::handle( std::shared_ptr<abstract_task> a_task )
 {
     auto route_task = std::make_shared<executable_task>();
-    route_task->set_fun( std::bind( &module_task_handler::execute, this, std::move( a_task ) ),
+    route_task->set_fun( std::bind( &module_task_handler::execute, std::move( a_task ) ),
         m_task_schedule_helper_module_name );
     framework_manager::get_instance().get_thread_manager().post_task( route_task, source_here );
 }

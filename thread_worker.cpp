@@ -178,6 +178,9 @@ void thread_worker::run_impl( std::shared_ptr<abstract_worker> a_current )
         for( auto it = tasks.begin(); it != tasks.end(); ++it )
         {
             auto& the_task = ( *it );
+            auto& watchdog = framework_manager::get_instance().get_thread_manager().get_watchdog();
+            watchdog.task_started( m_thread_id );
+            auto_guard watchdog_guard( [&watchdog, this]() { watchdog.task_finished( m_thread_id ); } );
             thread_manager::set_current_thread_module_owner( the_task->get_target_module() );
             auto_guard guard( []() { thread_manager::set_current_thread_module_owner( "" ); } );
             bool exit = handle_task( the_task );
@@ -194,6 +197,8 @@ void thread_worker::run_impl( std::shared_ptr<abstract_worker> a_current )
                 }
                 break;
             }
+
+            std::lock_guard<std::mutex> locker( m_mutex );
             m_last_executing_time = std::chrono::steady_clock::now();
         }
     }

@@ -282,9 +282,7 @@ std::string current_call_stack()
 
 class UltimateRealtimeTimer
 {
-
 public:
-
     static UltimateRealtimeTimer& get_instance()
     {
         static UltimateRealtimeTimer instance;
@@ -293,104 +291,128 @@ public:
 
     UltimateRealtimeTimer()
     {
-        m_hTimer = CreateWaitableTimerExW( NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS );
-        m_is_thread_alive.store( true, std::memory_order_release );
-        m_worker_thread = std::thread( &UltimateRealtimeTimer::ThreadWorker, this );
+        m_timer = ::CreateWaitableTimerExW
+            (
+            nullptr,
+            nullptr,
+            CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
+            TIMER_ALL_ACCESS
+            );
+
+        m_stop_event = ::CreateEventW
+            (
+            nullptr,
+            TRUE,
+            FALSE,
+            nullptr
+            );
+
+        if( !m_timer || !m_stop_event )
+        {
+            if( m_timer )
+            {
+                ::CloseHandle( m_timer );
+            }
+
+            if( m_stop_event )
+            {
+                ::CloseHandle( m_stop_event );
+            }
+
+            LogUtilFatal() << "Failed to create realtime timer handles.";
+        }
+
+        m_worker_thread = std::thread
+            (
+            &UltimateRealtimeTimer::thread_worker,
+            this
+            );
     }
 
     ~UltimateRealtimeTimer()
     {
-        m_is_thread_alive.store( false, std::memory_order_release );
-        m_is_running.store( false, std::memory_order_release );
+        ::SetEvent( m_stop_event );
+        ::CancelWaitableTimer( m_timer );
 
-        if (m_hTimer)
+        if( m_worker_thread.joinable() )
         {
-            CancelWaitableTimer( m_hTimer );
-            if (m_worker_thread.joinable())
-            {
-                m_worker_thread.join();
-            }
-            CloseHandle( m_hTimer );
+            m_worker_thread.join();
         }
+
+        ::CloseHandle( m_timer );
+        ::CloseHandle( m_stop_event );
     }
 
-    UltimateRealtimeTimer( const UltimateRealtimeTimer& ) = delete;
-    UltimateRealtimeTimer& operator=( const UltimateRealtimeTimer& ) = delete;
-
-    bool Start( uint32_t first_delay_ms, uint32_t period_ms )
+    bool start( uint32_t a_delay_ms )
     {
-        m_period_ms.store( period_ms, std::memory_order_release );
-        m_is_running.store( true, std::memory_order_release );
+        LARGE_INTEGER due_time;
+        due_time.QuadPart =
+            -( static_cast< LONGLONG >( std::max( a_delay_ms, 1u ) ) * 10000 );
 
-        LARGE_INTEGER liDueTime;
-        liDueTime.QuadPart = -(static_cast<LONGLONG>(first_delay_ms) * 10000);
-
-        return ::SetWaitableTimer( m_hTimer, &liDueTime, 0, NULL, NULL, FALSE );
+        // lPeriod is zero: this is a one-shot timer.
+        return ::SetWaitableTimer
+            (
+            m_timer,
+            &due_time,
+            0,
+            nullptr,
+            nullptr,
+            FALSE
+            ) != FALSE;
     }
 
-    void Stop()
+    void cancel()
     {
-        m_is_running.store( false, std::memory_order_release );
-        ::CancelWaitableTimer( m_hTimer );
+        ::CancelWaitableTimer( m_timer );
     }
 
 private:
-
-    void ThreadWorker()
+    void thread_worker()
     {
         set_thread_name( "timer thread" );
 
         ::SetThreadPriority( ::GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL );
 
-        auto next_wakeup = std::chrono::steady_clock::now();
-
-        while (m_is_thread_alive.load( std::memory_order_acquire ))
-        {
-            DWORD waitResult = ::WaitForSingleObject( m_hTimer, INFINITE );
-
-            if (!m_is_thread_alive.load( std::memory_order_acquire )) break;
-
-            if (waitResult == WAIT_OBJECT_0 && m_is_running.load( std::memory_order_acquire ))
+        HANDLE wait_handles[] =
             {
-                uint32_t current_period = m_period_ms.load( std::memory_order_acquire );
-                const auto interval = std::chrono::milliseconds( current_period );
+            m_stop_event,
+            m_timer
+            };
 
-                next_wakeup += interval;
+        while( true )
+        {
+            DWORD result = ::WaitForMultipleObjects
+                (
+                2,
+                wait_handles,
+                FALSE,
+                INFINITE
+                );
 
-                timer_module::timer_timeout_callback();
-
-                auto now = std::chrono::steady_clock::now();
-                auto remaining = std::chrono::duration_cast<std::chrono::nanoseconds>(next_wakeup - now).count();
-
-                if (remaining > 0)
-                {
-                    LARGE_INTEGER liDueTime;
-                    liDueTime.QuadPart = -(remaining / 100);
-                    ::SetWaitableTimer( m_hTimer, &liDueTime, 0, NULL, NULL, FALSE );
-                }
-                else
-                {
-                    next_wakeup = now;
-                    LARGE_INTEGER liDueTime;
-                    liDueTime.QuadPart = -10000;
-                    ::SetWaitableTimer( m_hTimer, &liDueTime, 0, NULL, NULL, FALSE );
-                }
+            if( result == WAIT_OBJECT_0 )
+            {
+                break;
             }
+
+            if( result == WAIT_OBJECT_0 + 1 )
+            {
+                timer_module::timer_timeout_callback();
+                continue;
+            }
+
+            LogUtilFatal() << "Realtime timer wait failed: "
+                << ::GetLastError();
         }
     }
 
-private:
-    HANDLE            m_hTimer = NULL;
-    std::thread       m_worker_thread;
-
-    std::atomic<bool>          m_is_thread_alive{ false };
-    std::atomic<bool>          m_is_running{ false };
-    std::atomic<uint32_t>      m_period_ms{ 0 };
+    HANDLE m_timer = nullptr;
+    HANDLE m_stop_event = nullptr;
+    std::thread m_worker_thread;
 };
 
 void set_timer( uint32_t a_timeout )
 {
-    UltimateRealtimeTimer::get_instance().Start( a_timeout, 0xFFFFFFF0 );
+    UltimateRealtimeTimer::get_instance().start( a_timeout );
 }
 
 }
