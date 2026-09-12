@@ -53,7 +53,7 @@ public:
     std::shared_ptr<T> get_detail_information( std::string const& a_name )
     {
         auto info = get_informaion( a_name );
-        return std::dynamic_pointer_cast< T >( info );
+        return std::static_pointer_cast< T >( info );
     }
 
 private:

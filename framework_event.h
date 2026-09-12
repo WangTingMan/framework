@@ -23,6 +23,8 @@
 #pragma once
 #include "abstract_task.h"
 
+#include <atomic>
+
 namespace framework
 {
 
@@ -59,7 +61,14 @@ public:
         abstract_task::copy_to( a_tsk );
     }
 
+    static uint16_t register_task_type()
+    {
+        static std::atomic_uint16_t s_next_type = 0x01;
+        return s_next_type.fetch_add( 1 );
+    }
+
     event_type m_event_type = event_type::invlaid_type;
+    std::atomic_uint16_t m_derived_type = 0x00;
     std::string m_module_name; // See tye power_status_changed
 };
 

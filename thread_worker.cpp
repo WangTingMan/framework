@@ -24,6 +24,7 @@
 #include "thread_worker.h"
 #include "log_util.h"
 #include "thread_manager.h"
+#include "timer_module.h"
 #include "framework_manager.h"
 #include "internal/platform.h"
 #include "executable_task.h"
@@ -153,6 +154,7 @@ void thread_worker::run_impl( std::shared_ptr<abstract_worker> a_current )
 
     framework::set_thread_name( "worker" );
 
+    int64_t task_started_time = 0;
     while( true )
     {
         if( !m_is_running )
@@ -180,6 +182,7 @@ void thread_worker::run_impl( std::shared_ptr<abstract_worker> a_current )
             auto& the_task = ( *it );
             auto& watchdog = framework_manager::get_instance().get_thread_manager().get_watchdog();
             watchdog.task_started( m_thread_id );
+            task_started_time = timer_module::get_system_booting_time();
             auto_guard watchdog_guard( [&watchdog, this]() { watchdog.task_finished( m_thread_id ); } );
             thread_manager::set_current_thread_module_owner( the_task->get_target_module() );
             auto_guard guard( []() { thread_manager::set_current_thread_module_owner( "" ); } );

@@ -1,4 +1,4 @@
-/*
+﻿/*
   Copyright (c) 2009-2025
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -66,7 +66,23 @@ public:
 
     bool is_running()const;
 
-    uint16_t register_task_type(uint16_t a_count);
+    /**
+     * @brief Registers a batch of task types and allocates a contiguous range of task‑type IDs.
+     *
+     * Allocates a contiguous block of task‑type IDs according to the requested count.
+     * Returns the starting ID of the allocated range. The internal offset @c m_next_task_type
+     * is advanced automatically. This method is thread‑safe with exclusive locking.
+     * The valid allocated ID range is [return_value, return_value + a_count - 1].
+     *
+     * @param a_count Number of consecutive task‑type IDs to allocate. Must be greater than zero.
+     * @return uint16_t Starting ID of the allocated task‑type range.
+     *
+     * @note Advances @c m_next_task_type for subsequent allocations.
+     * @warning Be aware of uint16_t overflow risk. If @c m_next_task_type + a_count exceeds
+     *          @c UINT16_MAX, ID values will wrap around and cause incorrect ID assignments.
+     * @threadsafe Thread‑safe; acquires exclusive ownership of @c m_mutex.
+     */
+    uint16_t register_task_type( uint16_t a_count = 1 );
 
 private:
 

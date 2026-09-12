@@ -23,6 +23,7 @@
 #pragma once
 #include <cstdint>
 #include <functional>
+#include <iostream>
 #include <string>
 #include <memory>
 
@@ -31,7 +32,7 @@
 namespace framework
 {
 
-struct source_position
+struct FRAMEWORK_EXPORT source_position
 {
     const char* m_file = nullptr;
     uint64_t m_line = 0;
@@ -49,6 +50,12 @@ struct source_position
     std::string to_string()const;
 
 };
+
+inline std::ostream& operator<<( std::ostream& os, source_position const& pos )
+{
+    os << pos.to_string();
+    return os;
+}
 
 #define source_here source_position( __FILE__, __LINE__ )
 

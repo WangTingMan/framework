@@ -47,7 +47,7 @@ public:
         uint64_t thread_id = 0;
 
         /** The monotonic-clock time point at which task execution started. */
-        std::chrono::steady_clock::time_point started_at;
+        int64_t started_at = 0;
     };
 
     /** The current operating state of the watchdog. */
@@ -149,7 +149,7 @@ public:
 private:
     struct task_record
     {
-        std::chrono::steady_clock::time_point started_at;
+        int64_t started_at;
         bool timeout_reported = false;
     };
 

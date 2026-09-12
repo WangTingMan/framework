@@ -1,5 +1,6 @@
 #include "thread_pool_watchdog.h"
 #include "log_util.h"
+#include "timer_module.h"
 #include "internal/platform.h"
 
 #include <algorithm>
@@ -42,9 +43,12 @@ void thread_pool_watchdog::ensure_thread_started()
 void thread_pool_watchdog::task_started( uint64_t a_thread_id )
 {
     {
+        task_record one_task_record;
+        one_task_record.started_at = timer_module::get_system_booting_time();
+        one_task_record.timeout_reported = false;
         std::lock_guard<std::mutex> locker( m_mutex );
         ensure_thread_started();
-        m_tasks[a_thread_id] = { std::chrono::steady_clock::now(), false };
+        m_tasks[a_thread_id] = one_task_record;
         m_state = state::monitoring;
     }
     m_condition.notify_one();
@@ -128,12 +132,12 @@ void thread_pool_watchdog::run()
         }
 
         m_state = state::monitoring;
-        auto next_check = std::chrono::steady_clock::time_point::max();
-        auto now = std::chrono::steady_clock::now();
+        int64_t next_check = std::numeric_limits<int64_t>::max();
+        auto now = timer_module::get_system_booting_time();
         std::vector<monitored_task> timed_out;
         for( auto& task : m_tasks )
         {
-            auto timeout_at = task.second.started_at + m_task_timeout;
+            auto timeout_at = task.second.started_at + m_task_timeout.count();
             if( !task.second.timeout_reported && timeout_at <= now )
             {
                 task.second.timeout_reported = true;
@@ -141,7 +145,7 @@ void thread_pool_watchdog::run()
             }
             else if( !task.second.timeout_reported )
             {
-                next_check = std::min( next_check, timeout_at );
+                next_check = std::min( next_check, std::abs( timeout_at - now ) );
             }
         }
 
@@ -151,10 +155,9 @@ void thread_pool_watchdog::run()
             locker.unlock();
             for( auto const& task : timed_out )
             {
-                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::steady_clock::now() - task.started_at );
+                auto elapsed = timer_module::get_system_booting_time() - task.started_at;
                 LogUtilWarning() << "Thread pool watchdog detected a timed-out task. thread: "
-                    << task.thread_id << ", elapsed: " << elapsed.count() << " ms.";
+                    << task.thread_id << ", elapsed: " << elapsed << " ms.";
                 if( callback )
                 {
                     callback( task );
@@ -168,13 +171,13 @@ void thread_pool_watchdog::run()
             continue;
         }
 
-        if( next_check == std::chrono::steady_clock::time_point::max() )
+        if( next_check >= std::numeric_limits<int64_t>::max() )
         {
             m_condition.wait( locker );
         }
         else
         {
-            m_condition.wait_until( locker, next_check );
+            m_condition.wait_for( locker, std::chrono::milliseconds( next_check ) );
         }
     }
 }
