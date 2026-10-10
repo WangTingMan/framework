@@ -171,6 +171,26 @@ private:
 
     void make_schedule_task_if_need( int64_t a_front_time_to_execute );
 
+    /**
+     * @brief Allocate next unique timer identifier using atomic increment.
+     *
+     * This function returns a uint32_t timer ID by atomically incrementing the counter.
+     * The counter will wrap around to 0 after reaching UINT32_MAX.
+     *
+     * @warning Under extreme conditions:
+     * Long continuous device uptime combined with frequent rapid allocate/destroy cycles
+     * can cause the ID counter to wrap around. In such edge cases, this simple increment
+     * does not guarantee the newly returned ID is not currently in use.
+     * Additional check against active timer set is required for this extreme scenario.
+     *
+     * @return Next allocated 32-bit unsigned timer ID
+     */
+    uint32_t get_available_timer_id()
+    {
+        /**/
+        return m_timer_count.fetch_add( 1 );
+    }
+
     std::recursive_mutex m_mutex;   // Protect m_timers
     std::list<std::shared_ptr<timer_control_block>> m_timers;
 

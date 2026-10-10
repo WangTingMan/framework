@@ -160,7 +160,7 @@ uint32_t timer_module::register_timer
     timer->set_timeout_callback( a_expire_callback );
     timer->set_interval( static_cast< uint32_t >( a_interval.count() ) );
     timer->set_trigger_times( a_trigger_times );
-    timer->set_timer_id( m_timer_count.fetch_add( 1 ) );
+    timer->set_timer_id( get_available_timer_id() );
     timer->set_timer_name( a_timer_name );
     timer->set_handle_module( a_handle_module );
     timer->start_schedule();
