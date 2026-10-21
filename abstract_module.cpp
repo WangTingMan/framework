@@ -31,6 +31,29 @@
 namespace framework
 {
 
+std::string abstract_module::get_module_type_string()const
+{
+    auto type_ = get_module_type();
+    switch( type_ )
+    {
+    case module_type::concurrently_executing:
+        return "concurrently_executing";
+        break;
+    case module_type::execute_task_when_post:
+        return "execute_task_when_post";
+        break;
+    case module_type::handler_shchedule:
+        return "handler_shchedule";
+        break;
+    case module_type::sequence_executing:
+        return "sequence_executing";
+        break;
+    default:
+        break;
+    }
+    return "";
+}
+
 abstract_module::powering_status abstract_module::get_power_status()const
 {
     std::shared_lock<std::shared_mutex> locker(m_mutex);

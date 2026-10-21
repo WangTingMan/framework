@@ -339,7 +339,8 @@ void module_manager::load_modules( std::function< std::vector<std::shared_ptr<fr
         if( !m_modules[ele->get_name()] )
         {
             m_modules[ele->get_name()] = ele;
-            LogUtilInfo() << "Loaded module: " << ele->get_name();
+            LogUtilInfo() << "Loaded module: " << ele->get_name() << ", module type: "
+                << ele->get_module_type_string();
             if( ele->get_name().empty() )
             {
                 LogUtilError() << "Must assign a name for the module!";

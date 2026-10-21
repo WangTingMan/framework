@@ -23,6 +23,7 @@
 #include "utils.h"
 
 #include <array>
+#include <random>
 #include <ranges>
 #include <stdexcept>
 
@@ -195,6 +196,24 @@ bool base64_decode( const std::string& input, std::vector<char>& output )
     }
 
     return true;
+}
+
+uint32_t get_real_random( uint32_t a_min, uint32_t a_max )
+{
+    if( a_min > a_max )
+    {
+        std::swap( a_min, a_max );
+    }
+    if( a_min == a_max )
+    {
+        return a_min;
+    }
+
+    static std::random_device rd;
+    static std::mt19937 gen( rd() );
+    std::uniform_int_distribution<uint32_t> dist( a_min, a_max );
+
+    return dist( gen );
 }
 
 }

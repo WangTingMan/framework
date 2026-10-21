@@ -87,6 +87,8 @@ FRAMEWORK_EXPORT void base64_encode( char const* a_buffer, size_t a_size, std::s
 
 FRAMEWORK_EXPORT bool base64_decode( const std::string& input, std::vector<char>& output );
 
+FRAMEWORK_EXPORT uint32_t get_real_random( uint32_t a_min, uint32_t a_max );
+
 inline bool base64_decode( const std::string& a_input, std::vector<unsigned char>& a_output )
 {
     std::vector<char> output;

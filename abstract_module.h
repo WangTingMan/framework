@@ -97,6 +97,8 @@ public:
         return m_module_type;
     }
 
+    std::string get_module_type_string()const;
+
     powering_status get_power_status()const;
 
     void set_task_handler( std::shared_ptr<module_task_handler> a_task_handler )
