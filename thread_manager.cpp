@@ -201,7 +201,6 @@ void thread_manager::post_task( std::vector<std::shared_ptr<abstract_task>> a_ta
 void thread_manager::push_idle_worker( std::shared_ptr<abstract_worker> a_worker )
 {
     std::lock_guard<std::recursive_mutex> locker( m_mutex );
-    bool task_assigned = false;
     for( auto it = m_modules_shcedule.begin(); it != m_modules_shcedule.end(); ++it )
     {
         if( it->second.m_executing_worker == a_worker )
@@ -212,11 +211,20 @@ void thread_manager::push_idle_worker( std::shared_ptr<abstract_worker> a_worker
             }
             else
             {
-                std::vector<std::shared_ptr<abstract_task>> tasks
-                    ( it->second.pending_tasks.begin(), it->second.pending_tasks.end() );
-                a_worker->post_task( tasks );
-                it->second.pending_tasks.clear();
-                task_assigned = true;
+                if( !a_worker )
+                {
+                    a_worker = find_idle_worker();
+                }
+
+                if( a_worker )
+                {
+                    std::vector<std::shared_ptr<abstract_task>> tasks
+                        ( it->second.pending_tasks.begin(), it->second.pending_tasks.end() );
+                    a_worker->post_task( tasks );
+                    it->second.pending_tasks.clear();
+                    it->second.m_executing_worker = a_worker;
+                    a_worker.reset();
+                }
             }
         }
         else
@@ -226,35 +234,34 @@ void thread_manager::push_idle_worker( std::shared_ptr<abstract_worker> a_worker
             {
                 if( !( it->second.pending_tasks.empty() ) )
                 {
-                    std::shared_ptr<abstract_worker> worker;
-                    worker = find_idle_worker();
-                    if( worker )
+                    if( !a_worker )
                     {
-                        assign_work( worker, it->second.pending_tasks );
-                        it->second.pending_tasks.clear();
-                        it->second.m_executing_worker = worker;
+                        a_worker = find_idle_worker();
                     }
+
+                    if( a_worker )
+                    {
+                        assign_work( a_worker, it->second.pending_tasks );
+                        it->second.pending_tasks.clear();
+                        it->second.m_executing_worker = a_worker;
+                        a_worker.reset();
+                    }
+                }
+            }
+            else
+            {
+                if( !it->second.pending_tasks.empty() )
+                {
+                    std::vector<std::shared_ptr<abstract_task>> tasks
+                        ( it->second.pending_tasks.begin(), it->second.pending_tasks.end() );
+                    it->second.pending_tasks.clear();
+                    it->second.m_executing_worker->post_task( tasks );
                 }
             }
         }
     }
 
-    if( task_assigned )
-    {
-        return;
-    }
-
-
-    if( !m_work_need_assign.empty() )
-    {
-        // There is a work need to do and assign to a_worker. So do not
-        // push it into idle worker list.
-        a_worker->post_task( m_work_need_assign.front() );
-        m_work_need_assign.erase( m_work_need_assign.begin() );
-        return;
-    }
-
-    if( std::find( m_idle_worker.begin(), m_idle_worker.end(), a_worker ) == m_idle_worker.end() )
+    if( a_worker && std::find( m_idle_worker.begin(), m_idle_worker.end(), a_worker ) == m_idle_worker.end() )
     {
         m_idle_worker.push_back( a_worker );
     }
@@ -263,6 +270,19 @@ void thread_manager::push_idle_worker( std::shared_ptr<abstract_worker> a_worker
     if( it != m_working_worker.end() )
     {
         m_working_worker.erase( it );
+    }
+
+    if( m_work_need_assign.empty() )
+    {
+        return;
+    }
+
+    // There is a work need to do and assign to a_worker. So do not
+    // push it into idle worker list.
+    if( a_worker )
+    {
+        post_task( std::move( m_work_need_assign ), source_here );
+        return;
     }
 }
 

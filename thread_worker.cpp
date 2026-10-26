@@ -206,6 +206,13 @@ void thread_worker::run_impl( std::shared_ptr<abstract_worker> a_current )
         }
     }
 
+    locker.lock();
+    if( !m_tasks.empty() )
+    {
+        LogUtilDebug() << "schedule unhandled task to thread pool";
+        framework_manager::get_instance().get_instance()
+            .get_thread_manager().post_task( std::move( m_tasks ), source_here );
+    }
     LogUtilDebug() << "thread work ended.";
 }
 
